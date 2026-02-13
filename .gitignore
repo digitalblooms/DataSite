@@ -1,0 +1,13 @@
+# Large sample data files
+examplepayload.json
+samplewebhookresponse.json
+
+# Query results folder (too large for repo)
+query results/
+
+# Development files
+.DS_Store
+*.log
+
+# Keep these in local development only
+diagnostic-queries.sql
