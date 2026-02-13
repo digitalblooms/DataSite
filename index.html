@@ -1032,6 +1032,11 @@
             let statusBadgeHTML = '';
             const linkedCharityNumber = charity.linked_charity_number;
 
+            // Debug: log the first few charities to see what values we're getting
+            if (index < 3) {
+                console.log(`Charity ${index}:`, charity.charity_name, 'linked_charity_number:', linkedCharityNumber, 'type:', typeof linkedCharityNumber);
+            }
+
             if (linkedCharityNumber === 0 || linkedCharityNumber === '0') {
                 statusBadgeHTML = '<span class="status-badge badge-parent">Parent</span>';
             } else if (linkedCharityNumber && linkedCharityNumber !== null && linkedCharityNumber !== 'null') {
