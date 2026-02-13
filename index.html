@@ -1341,11 +1341,11 @@
                 yearTotals[year] = grantsByYear[year].reduce((sum, g) => sum + (g.amount || 0), 0);
             });
 
-            // Generate year coverage timeline (last 7 years)
-            const currentYear = new Date().getFullYear();
-            const yearRange = Array.from({length: 7}, (_, i) => currentYear - i).reverse();
-            const processedYears = parseArray(charity.processed_grant_years).filter(y => y != null);
-            const yearsWithData = new Set(processedYears.map(y => parseInt(y)));
+            // Generate year coverage timeline - only show years with data
+            const processedYears = parseArray(charity.processed_grant_years)
+                .filter(y => y != null && y !== 'Unknown')
+                .map(y => parseInt(y))
+                .sort((a, b) => a - b); // Sort ascending (oldest to newest)
 
             tab.innerHTML = `
                 <div class="stat-grid" style="margin-bottom: 2rem;">
@@ -1365,23 +1365,22 @@
                     ` : ''}
                 </div>
 
+                ${processedYears.length > 0 ? `
                 <div class="data-coverage-section">
                     <div class="data-coverage-header">
                         <span class="data-coverage-title">📄 Data Coverage</span>
                         <span class="data-coverage-subtitle">Years with processed PDF data</span>
                     </div>
                     <div class="year-timeline">
-                        ${yearRange.map(year => {
-                            const hasData = yearsWithData.has(year);
-                            return `
-                                <div class="year-indicator ${hasData ? 'has-data' : 'no-data'}">
-                                    <div class="year-icon">${hasData ? '✓' : '○'}</div>
-                                    <div class="year-label">${year}</div>
-                                </div>
-                            `;
-                        }).join('')}
+                        ${processedYears.map(year => `
+                            <div class="year-indicator has-data">
+                                <div class="year-icon">✓</div>
+                                <div class="year-label">${year}</div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
+                ` : ''}
 
                 ${sortedYears.map(year => `
                     <div class="grants-year-section">
