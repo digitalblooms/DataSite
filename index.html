@@ -514,6 +514,73 @@
             color: var(--gray-600);
         }
 
+        /* Year-grouped grants styles */
+        .grants-year-section {
+            margin-bottom: 2rem;
+        }
+
+        .grants-year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, var(--primary), #2563eb);
+            color: white;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .grants-year-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .grants-year-stats {
+            font-size: 0.875rem;
+            opacity: 0.95;
+        }
+
+        .grants-table {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .grants-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .grants-table thead {
+            background: var(--gray-50);
+        }
+
+        .grants-table th {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .grants-table td {
+            padding: 0.625rem 1rem;
+            font-size: 0.9rem;
+            color: var(--gray-900);
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .grants-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .grants-table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
         .array-list {
             display: flex;
             flex-wrap: wrap;
@@ -1173,11 +1240,28 @@
                 return;
             }
 
-            // Calculate pagination
-            const totalPages = Math.ceil(grants.length / GRANTS_PER_PAGE);
-            const startIndex = (page - 1) * GRANTS_PER_PAGE;
-            const endIndex = startIndex + GRANTS_PER_PAGE;
-            const currentGrants = grants.slice(startIndex, endIndex);
+            // Group grants by year
+            const grantsByYear = {};
+            grants.forEach(grant => {
+                const year = grant.grant_year || 'Unknown';
+                if (!grantsByYear[year]) {
+                    grantsByYear[year] = [];
+                }
+                grantsByYear[year].push(grant);
+            });
+
+            // Sort years descending
+            const sortedYears = Object.keys(grantsByYear).sort((a, b) => {
+                if (a === 'Unknown') return 1;
+                if (b === 'Unknown') return -1;
+                return parseInt(b) - parseInt(a);
+            });
+
+            // Calculate totals per year
+            const yearTotals = {};
+            sortedYears.forEach(year => {
+                yearTotals[year] = grantsByYear[year].reduce((sum, g) => sum + (g.amount || 0), 0);
+            });
 
             tab.innerHTML = `
                 <div class="stat-grid" style="margin-bottom: 2rem;">
@@ -1196,39 +1280,33 @@
                     </div>
                     ` : ''}
                 </div>
-                <div class="info-label" style="margin-bottom: 1rem;">Recent Grants</div>
-                <div class="grants-list">
-                    ${currentGrants.map(grant => `
-                        <div class="grant-item">
-                            <div class="grant-recipient">${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</div>
-                            <div class="grant-details">
-                                <span><strong>${formatCurrency(grant.amount || 0)}</strong></span>
-                                ${grant.grant_year ? `<span>Year: ${grant.grant_year}</span>` : ''}
-                            </div>
+
+                ${sortedYears.map(year => `
+                    <div class="grants-year-section">
+                        <div class="grants-year-header">
+                            <span class="grants-year-title">${year}</span>
+                            <span class="grants-year-stats">${grantsByYear[year].length} grants • ${formatCurrency(yearTotals[year])}</span>
                         </div>
-                    `).join('')}
-                </div>
-                ${grants.length > GRANTS_PER_PAGE ? `
-                <div class="pagination">
-                    <button
-                        class="pagination-button"
-                        onclick="populateGrantsTab(currentResults[${currentResults.findIndex(c => c.organisation_number === charity.organisation_number)}], ${page - 1})"
-                        ${page <= 1 ? 'disabled' : ''}
-                    >
-                        ← Previous
-                    </button>
-                    <div class="pagination-info">
-                        Page ${page} of ${totalPages} (${grants.length} grants)
+                        <div class="grants-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left; width: 70%;">Recipient</th>
+                                        <th style="text-align: right; width: 30%;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${grantsByYear[year].map(grant => `
+                                        <tr>
+                                            <td>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</td>
+                                            <td style="text-align: right; font-weight: 600;">${formatCurrency(grant.amount || 0)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <button
-                        class="pagination-button"
-                        onclick="populateGrantsTab(currentResults[${currentResults.findIndex(c => c.organisation_number === charity.organisation_number)}], ${page + 1})"
-                        ${page >= totalPages ? 'disabled' : ''}
-                    >
-                        Next →
-                    </button>
-                </div>
-                ` : ''}
+                `).join('')}
             `;
         }
 

@@ -210,6 +210,7 @@ WITH grants_data AS (
     COUNT(DISTINCT grant_index) as grants_given_count,
     SUM(amount) as total_grants_given,
     MAX(grant_year) as latest_grant_year,
+    -- Collect only most recent 100 grants (not all 400+!)
     COLLECT_LIST(
       STRUCT(
         recipient_name,
@@ -218,8 +219,14 @@ WITH grants_data AS (
         recipient_charity_id
       )
     ) as recent_grants
-  FROM charity_grants
-  WHERE amount IS NOT NULL
+  FROM (
+    SELECT
+      *,
+      ROW_NUMBER() OVER (PARTITION BY funder_charity_id ORDER BY grant_year DESC, amount DESC) as rn
+    FROM charity_grants
+    WHERE amount IS NOT NULL
+  ) ranked_grants
+  WHERE rn <= 100  -- Filter BEFORE aggregation
   GROUP BY funder_charity_id
 )
 
@@ -269,8 +276,9 @@ LEFT JOIN publicextract_charity_annual_return_partb pb
   AND pb.latest_fin_period_submitted_ind = true
 
 -- JOIN TO PRE-AGGREGATED GRANTS (NO CARTESIAN PRODUCT!)
+-- Use registered_charity_number (not organisation_number) - grants table uses this!
 LEFT JOIN grants_data
-  ON CAST(pc.organisation_number AS STRING) = CAST(grants_data.funder_charity_id AS STRING)
+  ON CAST(pc.registered_charity_number AS STRING) = CAST(grants_data.funder_charity_id AS STRING)
 
 WHERE ${whereClause}
 
