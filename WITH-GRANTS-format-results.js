@@ -135,6 +135,7 @@ const formattedResults = results.map(charity => {
     grants_given_count: parseNumber(charity.grants_given_count) || 0,
     total_grants_given: parseNumber(charity.total_grants_given) || 0,
     latest_grant_year: charity.latest_grant_year,
+    processed_grant_years: parseArrayField(charity.processed_grant_years),
     recent_grants: parseGrantsArray(charity.recent_grants)
   };
 });
