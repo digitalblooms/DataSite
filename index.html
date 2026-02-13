@@ -1025,6 +1025,9 @@
         }
 
         function createCharityCard(charity, index) {
+            // Get income for stats display
+            const income = charity.latest_income || 0;
+
             // Determine status badge based on linked_charity_number
             let statusBadgeHTML = '';
             const linkedCharityNumber = charity.linked_charity_number;
