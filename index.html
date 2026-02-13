@@ -883,12 +883,14 @@
                 <button class="tab" onclick="switchTab(1)">Financials</button>
                 <button class="tab" onclick="switchTab(2)">Strategy</button>
                 <button class="tab" onclick="switchTab(3)">Grants</button>
+                <button class="tab" onclick="switchTab(4)">Subsidiaries</button>
             </div>
             <div class="modal-content">
                 <div id="tab0" class="tab-panel active"></div>
                 <div id="tab1" class="tab-panel"></div>
                 <div id="tab2" class="tab-panel"></div>
                 <div id="tab3" class="tab-panel"></div>
+                <div id="tab4" class="tab-panel"></div>
             </div>
         </div>
     </div>
@@ -1085,6 +1087,7 @@
             populateFinancialsTab(charity);
             populateStrategyTab(charity);
             populateGrantsTab(charity);
+            populateSubsidiariesTab(charity);
 
             // Show modal
             modal.classList.add('active');
@@ -1408,6 +1411,67 @@
                         </div>
                     </div>
                 `).join('')}
+            `;
+        }
+
+        function populateSubsidiariesTab(charity) {
+            const tab = document.getElementById('tab4');
+            const subsidiaries = charity.subsidiaries || [];
+
+            if (subsidiaries.length === 0) {
+                tab.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏢</div>
+                        <h3 class="empty-state-title">No subsidiaries</h3>
+                        <p class="empty-state-description">This charity does not have any registered subsidiary organizations.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Calculate total subsidiary income
+            const totalSubsidiaryIncome = subsidiaries.reduce((sum, s) => sum + (s.income || 0), 0);
+            const totalSubsidiaryExpenditure = subsidiaries.reduce((sum, s) => sum + (s.expenditure || 0), 0);
+
+            tab.innerHTML = `
+                <div class="stat-grid" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Number of Subsidiaries</div>
+                        <div class="stat-card-value">${subsidiaries.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Subsidiary Income</div>
+                        <div class="stat-card-value">${formatCurrency(totalSubsidiaryIncome)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Subsidiary Expenditure</div>
+                        <div class="stat-card-value">${formatCurrency(totalSubsidiaryExpenditure)}</div>
+                    </div>
+                </div>
+
+                <div class="info-label" style="margin-bottom: 1rem;">Subsidiary Organizations</div>
+                <div class="grants-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; width: 10%;">No.</th>
+                                <th style="text-align: left; width: 50%;">Subsidiary Name</th>
+                                <th style="text-align: right; width: 20%;">Income</th>
+                                <th style="text-align: right; width: 20%;">Expenditure</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${subsidiaries.map(sub => `
+                                <tr>
+                                    <td style="font-weight: 600; color: var(--gray-600);">${sub.subsidiary_number}</td>
+                                    <td>${escapeHtml(sub.name || 'Unknown Subsidiary')}</td>
+                                    <td style="text-align: right; font-weight: 600;">${formatCurrency(sub.income || 0)}</td>
+                                    <td style="text-align: right; font-weight: 600;">${formatCurrency(sub.expenditure || 0)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
         }
 

@@ -269,7 +269,17 @@ SELECT
   COALESCE(FIRST(grants_data.total_grants_given), 0) as total_grants_given,
   FIRST(grants_data.latest_grant_year) as latest_grant_year,
   COALESCE(FIRST(grants_data.processed_grant_years), ARRAY()) as processed_grant_years,
-  COALESCE(FIRST(grants_data.recent_grants), ARRAY()) as recent_grants
+  COALESCE(FIRST(grants_data.recent_grants), ARRAY()) as recent_grants,
+
+  COLLECT_LIST(
+    STRUCT(
+      subsidiaries.organisation_number as subsidiary_org_number,
+      subsidiaries.charity_name as subsidiary_name,
+      subsidiaries.latest_income as subsidiary_income,
+      subsidiaries.latest_expenditure as subsidiary_expenditure,
+      subsidiaries.linked_charity_number as subsidiary_number
+    )
+  ) FILTER (WHERE subsidiaries.organisation_number IS NOT NULL) as subsidiaries_list
 
 FROM publicextract_charity pc
 
@@ -291,6 +301,11 @@ LEFT JOIN publicextract_charity_annual_return_partb pb
 -- Use registered_charity_number (not organisation_number) - grants table uses this!
 LEFT JOIN grants_data
   ON CAST(pc.registered_charity_number AS STRING) = CAST(grants_data.funder_charity_id AS STRING)
+
+LEFT JOIN publicextract_charity subsidiaries
+  ON pc.registered_charity_number = subsidiaries.registered_charity_number
+  AND subsidiaries.linked_charity_number != 0
+  AND subsidiaries.charity_registration_status = 'Registered'
 
 WHERE ${whereClause}
 
