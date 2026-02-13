@@ -640,6 +640,44 @@
             font-size: 1rem;
             margin-right: 0.25rem;
         }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .pagination-button {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-700);
+            transition: all 0.2s;
+        }
+
+        .pagination-button:hover:not(:disabled) {
+            background: var(--gray-50);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .pagination-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -716,6 +754,8 @@
 
         let currentResults = [];
         let searchType = 'natural'; // 'natural' or 'name'
+        let currentGrantsPage = 1;
+        const GRANTS_PER_PAGE = 10;
 
         // Switch Search Type
         function switchSearchType(type) {
@@ -1114,9 +1154,13 @@
             `;
         }
 
-        function populateGrantsTab(charity) {
+        function populateGrantsTab(charity, page = 1) {
             const tab = document.getElementById('tab3');
             const grants = parseArray(charity.recent_grants);
+
+            // Reset to page 1 when opening modal
+            if (!page || page < 1) page = 1;
+            currentGrantsPage = page;
 
             if (grants.length === 0) {
                 tab.innerHTML = `
@@ -1129,11 +1173,17 @@
                 return;
             }
 
+            // Calculate pagination
+            const totalPages = Math.ceil(grants.length / GRANTS_PER_PAGE);
+            const startIndex = (page - 1) * GRANTS_PER_PAGE;
+            const endIndex = startIndex + GRANTS_PER_PAGE;
+            const currentGrants = grants.slice(startIndex, endIndex);
+
             tab.innerHTML = `
                 <div class="stat-grid" style="margin-bottom: 2rem;">
                     <div class="stat-card">
                         <div class="stat-card-label">Total Grants Given</div>
-                        <div class="stat-card-value">${charity.grants_given_count || 0}</div>
+                        <div class="stat-card-value">${grants.length}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-label">Total Amount</div>
@@ -1148,7 +1198,7 @@
                 </div>
                 <div class="info-label" style="margin-bottom: 1rem;">Recent Grants</div>
                 <div class="grants-list">
-                    ${grants.slice(0, 20).map(grant => `
+                    ${currentGrants.map(grant => `
                         <div class="grant-item">
                             <div class="grant-recipient">${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</div>
                             <div class="grant-details">
@@ -1157,12 +1207,28 @@
                             </div>
                         </div>
                     `).join('')}
-                    ${grants.length > 20 ? `
-                        <div style="text-align: center; color: var(--gray-600); font-size: 0.9rem; margin-top: 1rem;">
-                            Showing 20 of ${grants.length} grants
-                        </div>
-                    ` : ''}
                 </div>
+                ${grants.length > GRANTS_PER_PAGE ? `
+                <div class="pagination">
+                    <button
+                        class="pagination-button"
+                        onclick="populateGrantsTab(currentResults[${currentResults.findIndex(c => c.organisation_number === charity.organisation_number)}], ${page - 1})"
+                        ${page <= 1 ? 'disabled' : ''}
+                    >
+                        ← Previous
+                    </button>
+                    <div class="pagination-info">
+                        Page ${page} of ${totalPages} (${grants.length} grants)
+                    </div>
+                    <button
+                        class="pagination-button"
+                        onclick="populateGrantsTab(currentResults[${currentResults.findIndex(c => c.organisation_number === charity.organisation_number)}], ${page + 1})"
+                        ${page >= totalPages ? 'disabled' : ''}
+                    >
+                        Next →
+                    </button>
+                </div>
+                ` : ''}
             `;
         }
 
