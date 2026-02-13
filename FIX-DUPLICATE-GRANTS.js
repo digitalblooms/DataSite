@@ -10,7 +10,8 @@ console.log('Query:', query);
 
 try {
   let whereClauses = [
-    "pc.charity_registration_status = 'Registered'"
+    "pc.charity_registration_status = 'Registered'",
+    "pc.linked_charity_number = 0"  // Only show main parent charities, not subsidiaries
   ];
 
   // ============================================================================
