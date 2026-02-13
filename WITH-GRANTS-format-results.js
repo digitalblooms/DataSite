@@ -103,6 +103,7 @@ const formattedResults = results.map(charity => {
     // IDs
     organisation_number: charity.organisation_number,
     registered_charity_number: charity.registered_charity_number,
+    linked_charity_number: charity.linked_charity_number,
 
     // Basic info
     charity_name: charity.charity_name,
@@ -136,16 +137,7 @@ const formattedResults = results.map(charity => {
     total_grants_given: parseNumber(charity.total_grants_given) || 0,
     latest_grant_year: charity.latest_grant_year,
     processed_grant_years: parseArrayField(charity.processed_grant_years),
-    recent_grants: parseGrantsArray(charity.recent_grants),
-
-    // SUBSIDIARIES DATA
-    subsidiaries: parseArrayField(charity.subsidiaries_list).filter(s => s && s.subsidiary_org_number).map(s => ({
-      organisation_number: s.subsidiary_org_number,
-      name: s.subsidiary_name,
-      income: parseNumber(s.subsidiary_income),
-      expenditure: parseNumber(s.subsidiary_expenditure),
-      subsidiary_number: s.subsidiary_number
-    }))
+    recent_grants: parseGrantsArray(charity.recent_grants)
   };
 });
 

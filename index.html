@@ -190,7 +190,7 @@
             flex: 1;
         }
 
-        .income-badge {
+        .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.75rem;
@@ -198,19 +198,14 @@
             white-space: nowrap;
         }
 
-        .income-large {
-            background: #DCFCE7;
-            color: #166534;
-        }
-
-        .income-medium {
+        .badge-parent {
             background: #DBEAFE;
             color: #1E40AF;
         }
 
-        .income-small {
-            background: #FEF3C7;
-            color: #92400E;
+        .badge-subsidiary {
+            background: #F3E8FF;
+            color: #6B21A8;
         }
 
         .charity-activities {
@@ -883,14 +878,12 @@
                 <button class="tab" onclick="switchTab(1)">Financials</button>
                 <button class="tab" onclick="switchTab(2)">Strategy</button>
                 <button class="tab" onclick="switchTab(3)">Grants</button>
-                <button class="tab" onclick="switchTab(4)">Subsidiaries</button>
             </div>
             <div class="modal-content">
                 <div id="tab0" class="tab-panel active"></div>
                 <div id="tab1" class="tab-panel"></div>
                 <div id="tab2" class="tab-panel"></div>
                 <div id="tab3" class="tab-panel"></div>
-                <div id="tab4" class="tab-panel"></div>
             </div>
         </div>
     </div>
@@ -1032,9 +1025,15 @@
         }
 
         function createCharityCard(charity, index) {
-            const income = charity.latest_income || 0;
-            const incomeBadge = income >= 1000000 ? 'large' : income >= 100000 ? 'medium' : 'small';
-            const incomeLabel = income >= 1000000 ? 'Large' : income >= 100000 ? 'Medium' : 'Small';
+            // Determine status badge based on linked_charity_number
+            let statusBadgeHTML = '';
+            const linkedCharityNumber = charity.linked_charity_number;
+
+            if (linkedCharityNumber === 0 || linkedCharityNumber === '0') {
+                statusBadgeHTML = '<span class="status-badge badge-parent">Parent</span>';
+            } else if (linkedCharityNumber && linkedCharityNumber !== null && linkedCharityNumber !== 'null') {
+                statusBadgeHTML = `<span class="status-badge badge-subsidiary">Subsidiary #${linkedCharityNumber}</span>`;
+            }
 
             const classifications = parseArray(charity.classifications);
             const areas = parseArray(charity.areas_of_operation);
@@ -1044,7 +1043,7 @@
                 <div class="charity-card" onclick="showCharityDetail(${index})">
                     <div class="card-header">
                         <h3 class="charity-name">${escapeHtml(charity.charity_name || 'Unknown Charity')}</h3>
-                        <span class="income-badge income-${incomeBadge}">${incomeLabel}</span>
+                        ${statusBadgeHTML}
                     </div>
                     <p class="charity-activities">
                         ${escapeHtml(charity.charity_activities || 'No description available')}
@@ -1087,7 +1086,6 @@
             populateFinancialsTab(charity);
             populateStrategyTab(charity);
             populateGrantsTab(charity);
-            populateSubsidiariesTab(charity);
 
             // Show modal
             modal.classList.add('active');
@@ -1411,67 +1409,6 @@
                         </div>
                     </div>
                 `).join('')}
-            `;
-        }
-
-        function populateSubsidiariesTab(charity) {
-            const tab = document.getElementById('tab4');
-            const subsidiaries = charity.subsidiaries || [];
-
-            if (subsidiaries.length === 0) {
-                tab.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🏢</div>
-                        <h3 class="empty-state-title">No subsidiaries</h3>
-                        <p class="empty-state-description">This charity does not have any registered subsidiary organizations.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Calculate total subsidiary income
-            const totalSubsidiaryIncome = subsidiaries.reduce((sum, s) => sum + (s.income || 0), 0);
-            const totalSubsidiaryExpenditure = subsidiaries.reduce((sum, s) => sum + (s.expenditure || 0), 0);
-
-            tab.innerHTML = `
-                <div class="stat-grid" style="margin-bottom: 2rem;">
-                    <div class="stat-card">
-                        <div class="stat-card-label">Number of Subsidiaries</div>
-                        <div class="stat-card-value">${subsidiaries.length}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Total Subsidiary Income</div>
-                        <div class="stat-card-value">${formatCurrency(totalSubsidiaryIncome)}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Total Subsidiary Expenditure</div>
-                        <div class="stat-card-value">${formatCurrency(totalSubsidiaryExpenditure)}</div>
-                    </div>
-                </div>
-
-                <div class="info-label" style="margin-bottom: 1rem;">Subsidiary Organizations</div>
-                <div class="grants-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align: left; width: 10%;">No.</th>
-                                <th style="text-align: left; width: 50%;">Subsidiary Name</th>
-                                <th style="text-align: right; width: 20%;">Income</th>
-                                <th style="text-align: right; width: 20%;">Expenditure</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${subsidiaries.map(sub => `
-                                <tr>
-                                    <td style="font-weight: 600; color: var(--gray-600);">${sub.subsidiary_number}</td>
-                                    <td>${escapeHtml(sub.name || 'Unknown Subsidiary')}</td>
-                                    <td style="text-align: right; font-weight: 600;">${formatCurrency(sub.income || 0)}</td>
-                                    <td style="text-align: right; font-weight: 600;">${formatCurrency(sub.expenditure || 0)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
             `;
         }
 

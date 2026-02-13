@@ -10,8 +10,7 @@ console.log('Query:', query);
 
 try {
   let whereClauses = [
-    "pc.charity_registration_status = 'Registered'",
-    "pc.linked_charity_number = 0"  // Only show main parent charities, not subsidiaries
+    "pc.charity_registration_status = 'Registered'"
   ];
 
   // ============================================================================
@@ -214,14 +213,12 @@ try {
 function buildSQLQuery(whereClause, grantYearFilter = '') {
   return `
 WITH grants_data AS (
-  -- Pre-aggregate grants to avoid duplicates from other joins
   SELECT
     funder_charity_id,
     COUNT(DISTINCT grant_index) as grants_given_count,
     SUM(amount) as total_grants_given,
     MAX(grant_year) as latest_grant_year,
     COLLECT_SET(grant_year) as processed_grant_years,
-    -- Collect only most recent 100 grants (not all 400+!)
     COLLECT_LIST(
       STRUCT(
         recipient_name,
@@ -237,13 +234,14 @@ WITH grants_data AS (
     FROM charity_grants
     WHERE amount IS NOT NULL ${grantYearFilter}
   ) ranked_grants
-  WHERE rn <= 100  -- Filter BEFORE aggregation
+  WHERE rn <= 100
   GROUP BY funder_charity_id
 )
 
 SELECT
   pc.organisation_number,
   pc.registered_charity_number,
+  pc.linked_charity_number,
   pc.charity_name,
   pc.charity_activities,
   pc.latest_income,
@@ -264,22 +262,11 @@ SELECT
   FIRST(pb.income_donations_and_legacies) as income_donations,
   FIRST(pb.income_charitable_activities) as income_charitable,
 
-  -- GRANTS DATA FROM SUBQUERY (NO DUPLICATES!)
   COALESCE(FIRST(grants_data.grants_given_count), 0) as grants_given_count,
   COALESCE(FIRST(grants_data.total_grants_given), 0) as total_grants_given,
   FIRST(grants_data.latest_grant_year) as latest_grant_year,
   COALESCE(FIRST(grants_data.processed_grant_years), ARRAY()) as processed_grant_years,
-  COALESCE(FIRST(grants_data.recent_grants), ARRAY()) as recent_grants,
-
-  COLLECT_LIST(
-    STRUCT(
-      subsidiaries.organisation_number as subsidiary_org_number,
-      subsidiaries.charity_name as subsidiary_name,
-      subsidiaries.latest_income as subsidiary_income,
-      subsidiaries.latest_expenditure as subsidiary_expenditure,
-      subsidiaries.linked_charity_number as subsidiary_number
-    )
-  ) FILTER (WHERE subsidiaries.organisation_number IS NOT NULL) as subsidiaries_list
+  COALESCE(FIRST(grants_data.recent_grants), ARRAY()) as recent_grants
 
 FROM publicextract_charity pc
 
@@ -297,21 +284,15 @@ LEFT JOIN publicextract_charity_annual_return_partb pb
   ON pc.organisation_number = pb.organisation_number
   AND pb.latest_fin_period_submitted_ind = true
 
--- JOIN TO PRE-AGGREGATED GRANTS (NO CARTESIAN PRODUCT!)
--- Use registered_charity_number (not organisation_number) - grants table uses this!
 LEFT JOIN grants_data
   ON CAST(pc.registered_charity_number AS STRING) = CAST(grants_data.funder_charity_id AS STRING)
-
-LEFT JOIN publicextract_charity subsidiaries
-  ON pc.registered_charity_number = subsidiaries.registered_charity_number
-  AND subsidiaries.linked_charity_number != 0
-  AND subsidiaries.charity_registration_status = 'Registered'
 
 WHERE ${whereClause}
 
 GROUP BY
   pc.organisation_number,
   pc.registered_charity_number,
+  pc.linked_charity_number,
   pc.charity_name,
   pc.charity_activities,
   pc.latest_income,
