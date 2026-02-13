@@ -1,5 +1,5 @@
-// SIMPLIFIED Format Results - Only formats fields that actually have data
-// Removes: strategy tags, grants list (all empty in database)
+// Format Results - WITH GRANTS DATA
+// Now properly formats grants from charity_grants table!
 
 const input = $input.all();
 
@@ -71,6 +71,23 @@ function parseBoolean(value) {
   return Boolean(value);
 }
 
+// Helper: Parse grants array
+function parseGrantsArray(value) {
+  const grants = parseArrayField(value);
+
+  // Filter out grants with all null values
+  return grants.filter(grant => {
+    if (!grant) return false;
+    // Check if grant has at least one non-null value
+    return grant.recipient_name || grant.amount || grant.grant_year;
+  }).map(grant => ({
+    recipient_name: grant.recipient_name || 'Unknown Recipient',
+    recipient_charity_id: grant.recipient_charity_id,
+    amount: parseNumber(grant.amount),
+    grant_year: grant.grant_year
+  }));
+}
+
 // Convert array rows to objects
 const results = result.data_array.map(row => {
   const charity = {};
@@ -107,12 +124,18 @@ const formattedResults = results.map(charity => {
     charity_contact_address2: charity.charity_contact_address2,
     charity_contact_address3: charity.charity_contact_address3,
 
-    // Arrays that have data
+    // Arrays
     classifications: parseArrayField(charity.classifications),
     areas_of_operation: parseArrayField(charity.areas_of_operation),
 
     // Grantmaker flag
-    is_grantmaker: parseBoolean(charity.is_grantmaker)
+    is_grantmaker: parseBoolean(charity.is_grantmaker),
+
+    // GRANTS DATA (NOW INCLUDED!)
+    grants_given_count: parseNumber(charity.grants_given_count) || 0,
+    total_grants_given: parseNumber(charity.total_grants_given) || 0,
+    latest_grant_year: charity.latest_grant_year,
+    recent_grants: parseGrantsArray(charity.recent_grants)
   };
 });
 

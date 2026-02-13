@@ -8,6 +8,9 @@ Return ONLY valid JSON (no markdown, no explanations) with these optional fields
   "classifications": ["education", "health"],
   "geographic_areas": ["London", "Manchester"],
   "gives_grants": true,
+  "min_grants_given": 50,
+  "max_grants_given": null,
+  "grant_year": 2024,
   "has_website": false
 }
 
@@ -63,6 +66,17 @@ Set gives_grants=true ONLY for these terms:
 - "grantmaker", "grant maker", "funder", "foundation"
 - "gives grants", "provides grants", "funds charities"
 Note: 21,273 charities have grantmaking as main activity
+
+GRANT FILTERS:
+- min_grants_given: minimum number of grants given (e.g., "given over 50 grants")
+- max_grants_given: maximum number of grants given (e.g., "given fewer than 10 grants")
+- grant_year: specific year for grants (e.g., "grants in 2024", "funded in 2023")
+Examples:
+- "over 50 grants" → min_grants_given: 50
+- "more than 100 grants" → min_grants_given: 100
+- "less than 20 grants" → max_grants_given: 20
+- "in 2024" → grant_year: 2024
+- "during 2023" → grant_year: 2023
 
 EXAMPLES:
 
@@ -120,6 +134,37 @@ Output:
 {
   "classifications": ["environment"],
   "gives_grants": true
+}
+
+Input: "Charities who have given over 50 grants in 2024"
+Output:
+{
+  "min_grants_given": 50,
+  "grant_year": 2024
+}
+
+Input: "Large grantmakers with more than 100 grants"
+Output:
+{
+  "min_income": 1000000,
+  "gives_grants": true,
+  "min_grants_given": 100
+}
+
+Input: "Education funders who gave grants in 2023"
+Output:
+{
+  "classifications": ["education"],
+  "gives_grants": true,
+  "grant_year": 2023
+}
+
+Input: "London charities with over 30 grants in 2024"
+Output:
+{
+  "geographic_areas": ["London"],
+  "min_grants_given": 30,
+  "grant_year": 2024
 }
 
 Now parse this query and return JSON only:

@@ -171,12 +171,21 @@ try {
     whereClauses.push(`(pa.grant_making_is_main_activity = true OR grants_data.grants_given_count > 0)`);
   }
 
+  if (params.min_grants_given) {
+    whereClauses.push(`grants_data.grants_given_count >= ${params.min_grants_given}`);
+  }
+
+  if (params.max_grants_given) {
+    whereClauses.push(`grants_data.grants_given_count <= ${params.max_grants_given}`);
+  }
+
   if (params.has_website === true) {
     whereClauses.push(`pc.charity_contact_web IS NOT NULL AND pc.charity_contact_web != ''`);
   }
 
   const whereClause = whereClauses.join(' AND ');
-  const sqlQuery = buildSQLQuery(whereClause);
+  const grantYearFilter = params.grant_year ? `AND grant_year = ${params.grant_year}` : '';
+  const sqlQuery = buildSQLQuery(whereClause, grantYearFilter);
 
   return [{
     json: {
@@ -201,7 +210,7 @@ try {
 // ============================================================================
 // BUILD SQL QUERY - WITH SUBQUERY TO AVOID DUPLICATES
 // ============================================================================
-function buildSQLQuery(whereClause) {
+function buildSQLQuery(whereClause, grantYearFilter = '') {
   return `
 WITH grants_data AS (
   -- Pre-aggregate grants to avoid duplicates from other joins
@@ -210,6 +219,7 @@ WITH grants_data AS (
     COUNT(DISTINCT grant_index) as grants_given_count,
     SUM(amount) as total_grants_given,
     MAX(grant_year) as latest_grant_year,
+    COLLECT_SET(grant_year) as processed_grant_years,
     -- Collect only most recent 100 grants (not all 400+!)
     COLLECT_LIST(
       STRUCT(
@@ -224,7 +234,7 @@ WITH grants_data AS (
       *,
       ROW_NUMBER() OVER (PARTITION BY funder_charity_id ORDER BY grant_year DESC, amount DESC) as rn
     FROM charity_grants
-    WHERE amount IS NOT NULL
+    WHERE amount IS NOT NULL ${grantYearFilter}
   ) ranked_grants
   WHERE rn <= 100  -- Filter BEFORE aggregation
   GROUP BY funder_charity_id
@@ -257,6 +267,7 @@ SELECT
   COALESCE(FIRST(grants_data.grants_given_count), 0) as grants_given_count,
   COALESCE(FIRST(grants_data.total_grants_given), 0) as total_grants_given,
   FIRST(grants_data.latest_grant_year) as latest_grant_year,
+  COALESCE(FIRST(grants_data.processed_grant_years), ARRAY()) as processed_grant_years,
   COALESCE(FIRST(grants_data.recent_grants), ARRAY()) as recent_grants
 
 FROM publicextract_charity pc

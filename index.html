@@ -581,6 +581,84 @@
             background: var(--gray-50);
         }
 
+        /* Data Coverage Timeline */
+        .data-coverage-section {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .data-coverage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .data-coverage-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .data-coverage-subtitle {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .year-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .year-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.375rem;
+            flex: 1;
+        }
+
+        .year-icon {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .year-indicator.has-data .year-icon {
+            background: #10B981;
+            color: white;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+
+        .year-indicator.no-data .year-icon {
+            background: var(--gray-100);
+            color: var(--gray-400);
+            border: 2px dashed var(--gray-300);
+        }
+
+        .year-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+        }
+
+        .year-indicator.has-data .year-label {
+            color: var(--gray-900);
+            font-weight: 600;
+        }
+
         .array-list {
             display: flex;
             flex-wrap: wrap;
@@ -1263,6 +1341,12 @@
                 yearTotals[year] = grantsByYear[year].reduce((sum, g) => sum + (g.amount || 0), 0);
             });
 
+            // Generate year coverage timeline (last 7 years)
+            const currentYear = new Date().getFullYear();
+            const yearRange = Array.from({length: 7}, (_, i) => currentYear - i).reverse();
+            const processedYears = parseArray(charity.processed_grant_years).filter(y => y != null);
+            const yearsWithData = new Set(processedYears.map(y => parseInt(y)));
+
             tab.innerHTML = `
                 <div class="stat-grid" style="margin-bottom: 2rem;">
                     <div class="stat-card">
@@ -1279,6 +1363,24 @@
                         <div class="stat-card-value">${charity.latest_grant_year}</div>
                     </div>
                     ` : ''}
+                </div>
+
+                <div class="data-coverage-section">
+                    <div class="data-coverage-header">
+                        <span class="data-coverage-title">📄 Data Coverage</span>
+                        <span class="data-coverage-subtitle">Years with processed PDF data</span>
+                    </div>
+                    <div class="year-timeline">
+                        ${yearRange.map(year => {
+                            const hasData = yearsWithData.has(year);
+                            return `
+                                <div class="year-indicator ${hasData ? 'has-data' : 'no-data'}">
+                                    <div class="year-icon">${hasData ? '✓' : '○'}</div>
+                                    <div class="year-label">${year}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
 
                 ${sortedYears.map(year => `
