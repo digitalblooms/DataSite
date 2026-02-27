@@ -3,22 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UK Charity Explorer - Bloomsbury Foundation</title>
+    <title>UK Charity Explorer</title>
     <style>
-        /* Bloomsbury Brand Guidelines Applied */
         :root {
-            /* Brand Colors */
-            --brand-black: #272726;
-            --brand-gold: #F0C69A;
-            --brand-gold-dark: #CB9D6B;
-            --brand-gold-darker: #A37F58;
-            --brand-white: #FFFFFF;
-            --brand-grey-1: #3C3C3B;
-            --brand-grey-2: #4A4A49;
-
-            /* Semantic colors */
-            --primary: var(--brand-gold);
-            --primary-dark: var(--brand-gold-dark);
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
             --success: #10B981;
             --warning: #F59E0B;
             --danger: #EF4444;
@@ -28,13 +17,12 @@
             --gray-300: #D1D5DB;
             --gray-600: #4B5563;
             --gray-700: #374151;
-            --gray-900: var(--brand-black);
+            --gray-900: #111827;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --shadow-gold: 0 4px 20px rgba(240, 198, 154, 0.3);
         }
 
         * {
@@ -44,9 +32,9 @@
         }
 
         body {
-            font-family: 'Futura', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--brand-black) 0%, var(--brand-grey-1) 100%);
-            color: var(--brand-white);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            color: var(--gray-900);
             line-height: 1.6;
             min-height: 100vh;
         }
@@ -60,47 +48,29 @@
         /* Header */
         header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             padding-top: 2rem;
         }
 
-        .logo-container {
-            margin-bottom: 0;
-        }
-
-        .logo {
-            max-width: 200px;
-            height: auto;
-        }
-
         h1 {
-            font-size: 2.25rem;
-            font-weight: 600;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--brand-gold) 0%, var(--brand-gold-dark) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0;
-            text-transform: none;
-            letter-spacing: -0.02em;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
         }
 
         .subtitle {
-            font-size: 0.95rem;
-            color: var(--brand-white);
-            opacity: 0.7;
-            font-weight: 400;
+            font-size: 1.125rem;
+            color: var(--gray-600);
         }
 
         /* Search Section */
         .search-section {
-            background: var(--brand-white);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: var(--shadow-gold);
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
             margin-bottom: 3rem;
-            border: 2px solid var(--brand-gold);
         }
 
         .search-form {
@@ -117,21 +87,20 @@
             border: 2px solid var(--gray-200);
             border-radius: 0.5rem;
             transition: all 0.2s;
-            font-family: 'Futura', sans-serif;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: var(--brand-gold);
-            box-shadow: 0 0 0 3px rgba(240, 198, 154, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .search-button {
             padding: 1rem 2rem;
             font-size: 1rem;
-            font-weight: 700;
-            color: var(--brand-black);
-            background: linear-gradient(135deg, var(--brand-gold) 0%, var(--brand-gold-dark) 100%);
+            font-weight: 600;
+            color: white;
+            background: var(--primary);
             border: none;
             border-radius: 0.5rem;
             cursor: pointer;
@@ -139,15 +108,12 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-family: 'Futura', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .search-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--brand-gold-dark) 0%, var(--brand-gold-darker) 100%);
+            background: var(--primary-dark);
             transform: translateY(-1px);
-            box-shadow: var(--shadow-gold);
+            box-shadow: var(--shadow-md);
         }
 
         .search-button:disabled {
@@ -156,9 +122,9 @@
         }
 
         .spinner {
-            border: 2px solid rgba(39, 39, 38, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top: 2px solid var(--brand-black);
+            border-top: 2px solid white;
             width: 16px;
             height: 16px;
             animation: spin 0.8s linear infinite;
@@ -180,8 +146,8 @@
 
         .results-count {
             font-size: 1.125rem;
-            color: var(--brand-gold);
-            font-weight: 700;
+            color: var(--gray-700);
+            font-weight: 600;
         }
 
         /* Results Grid */
@@ -193,7 +159,7 @@
         }
 
         .charity-card {
-            background: var(--brand-white);
+            background: white;
             border-radius: 0.75rem;
             padding: 1.5rem;
             box-shadow: var(--shadow);
@@ -204,8 +170,8 @@
 
         .charity-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-gold);
-            border-color: var(--brand-gold);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary);
         }
 
         .card-header {
@@ -219,7 +185,7 @@
         .charity-name {
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--brand-black);
+            color: var(--gray-900);
             line-height: 1.3;
             flex: 1;
         }
@@ -228,18 +194,18 @@
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 600;
             white-space: nowrap;
         }
 
         .badge-parent {
-            background: var(--brand-gold);
-            color: var(--brand-black);
+            background: #DBEAFE;
+            color: #1E40AF;
         }
 
         .badge-subsidiary {
-            background: var(--brand-grey-1);
-            color: var(--brand-white);
+            background: #F3E8FF;
+            color: #6B21A8;
         }
 
         .charity-activities {
@@ -258,7 +224,7 @@
             gap: 0.75rem;
             margin-bottom: 1rem;
             padding-top: 1rem;
-            border-top: 2px solid var(--brand-gold);
+            border-top: 1px solid var(--gray-200);
         }
 
         .stat {
@@ -271,13 +237,12 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 0.25rem;
-            font-weight: 700;
         }
 
         .stat-value {
             font-size: 1rem;
             font-weight: 700;
-            color: var(--brand-black);
+            color: var(--gray-900);
         }
 
         .charity-tags {
@@ -289,21 +254,20 @@
 
         .tag {
             padding: 0.25rem 0.75rem;
-            background: var(--brand-gold);
-            color: var(--brand-black);
+            background: var(--gray-100);
+            color: var(--gray-700);
             border-radius: 0.375rem;
             font-size: 0.8rem;
-            font-weight: 600;
+            font-weight: 500;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
-            background: var(--brand-white);
+            background: white;
             border-radius: 1rem;
             box-shadow: var(--shadow);
-            border: 2px solid var(--brand-gold);
         }
 
         .empty-state-icon {
@@ -314,8 +278,8 @@
 
         .empty-state-title {
             font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--brand-black);
+            font-weight: 600;
+            color: var(--gray-900);
             margin-bottom: 0.5rem;
         }
 
@@ -349,7 +313,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             overflow-y: auto;
             padding: 2rem 1rem;
@@ -362,27 +326,26 @@
         }
 
         .modal {
-            background: var(--brand-white);
+            background: white;
             border-radius: 1rem;
             max-width: 900px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-gold);
+            box-shadow: var(--shadow-xl);
             margin: auto;
-            border: 3px solid var(--brand-gold);
         }
 
         .modal-header {
             padding: 2rem;
-            border-bottom: 3px solid var(--brand-gold);
+            border-bottom: 1px solid var(--gray-200);
             display: flex;
             justify-content: space-between;
             align-items: start;
             gap: 1rem;
             position: sticky;
             top: 0;
-            background: var(--brand-white);
+            background: white;
             z-index: 10;
         }
 
@@ -393,39 +356,38 @@
         .modal-title {
             font-size: 1.75rem;
             font-weight: 700;
-            color: var(--brand-black);
+            color: var(--gray-900);
             margin-bottom: 0.5rem;
         }
 
         .modal-subtitle {
             font-size: 0.9rem;
             color: var(--gray-600);
-            font-weight: 600;
         }
 
         .close-button {
-            background: var(--brand-gold);
+            background: var(--gray-100);
             border: none;
             width: 2.5rem;
             height: 2.5rem;
             border-radius: 0.5rem;
             cursor: pointer;
             font-size: 1.25rem;
-            color: var(--brand-black);
+            color: var(--gray-600);
             transition: all 0.2s;
             flex-shrink: 0;
-            font-weight: 700;
         }
 
         .close-button:hover {
-            background: var(--brand-gold-dark);
+            background: var(--gray-200);
+            color: var(--gray-900);
         }
 
         .modal-tabs {
             display: flex;
-            border-bottom: 2px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-200);
             padding: 0 2rem;
-            background: var(--brand-white);
+            background: white;
             position: sticky;
             top: 85px;
             z-index: 10;
@@ -436,23 +398,20 @@
             background: none;
             border: none;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--gray-600);
             cursor: pointer;
-            border-bottom: 3px solid transparent;
+            border-bottom: 2px solid transparent;
             transition: all 0.2s;
-            font-family: 'Futura', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .tab:hover {
-            color: var(--brand-black);
+            color: var(--gray-900);
         }
 
         .tab.active {
-            color: var(--brand-gold);
-            border-bottom-color: var(--brand-gold);
+            color: var(--primary);
+            border-bottom-color: var(--primary);
         }
 
         .modal-content {
@@ -479,21 +438,20 @@
 
         .info-label {
             font-size: 0.875rem;
-            font-weight: 700;
-            color: var(--brand-black);
+            font-weight: 600;
+            color: var(--gray-700);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
         .info-value {
             font-size: 1rem;
-            color: var(--gray-700);
+            color: var(--gray-900);
         }
 
         .info-value a {
-            color: var(--brand-gold-darker);
+            color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
         }
 
         .info-value a:hover {
@@ -508,24 +466,22 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--brand-black) 0%, var(--brand-grey-1) 100%);
+            background: var(--gray-50);
             padding: 1.25rem;
             border-radius: 0.5rem;
-            border: 2px solid var(--brand-gold);
+            border: 1px solid var(--gray-200);
         }
 
         .stat-card-label {
             font-size: 0.875rem;
-            color: var(--brand-white);
+            color: var(--gray-600);
             margin-bottom: 0.5rem;
-            opacity: 0.9;
-            font-weight: 600;
         }
 
         .stat-card-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--brand-gold);
+            color: var(--gray-900);
         }
 
         .grants-list {
@@ -537,12 +493,12 @@
             padding: 1rem;
             background: var(--gray-50);
             border-radius: 0.5rem;
-            border-left: 4px solid var(--brand-gold);
+            border-left: 4px solid var(--primary);
         }
 
         .grant-recipient {
-            font-weight: 700;
-            color: var(--brand-black);
+            font-weight: 600;
+            color: var(--gray-900);
             margin-bottom: 0.25rem;
         }
 
@@ -563,11 +519,10 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.75rem 1rem;
-            background: linear-gradient(135deg, var(--brand-black), var(--brand-grey-1));
-            color: var(--brand-gold);
+            background: linear-gradient(135deg, var(--primary), #2563eb);
+            color: white;
             border-radius: 0.5rem;
             margin-bottom: 0.5rem;
-            border: 2px solid var(--brand-gold);
         }
 
         .grants-year-title {
@@ -578,12 +533,11 @@
         .grants-year-stats {
             font-size: 0.875rem;
             opacity: 0.95;
-            color: var(--brand-white);
         }
 
         .grants-table {
             background: white;
-            border: 2px solid var(--brand-gold);
+            border: 1px solid var(--gray-200);
             border-radius: 0.5rem;
             overflow: hidden;
         }
@@ -594,24 +548,24 @@
         }
 
         .grants-table thead {
-            background: var(--brand-gold);
+            background: var(--gray-50);
         }
 
         .grants-table th {
             padding: 0.75rem 1rem;
             font-size: 0.875rem;
-            font-weight: 700;
-            color: var(--brand-black);
+            font-weight: 600;
+            color: var(--gray-700);
             text-transform: uppercase;
             letter-spacing: 0.025em;
-            border-bottom: 2px solid var(--brand-black);
+            border-bottom: 2px solid var(--gray-200);
         }
 
         .grants-table td {
             padding: 0.625rem 1rem;
             font-size: 0.9rem;
-            color: var(--brand-black);
-            border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-900);
+            border-bottom: 1px solid var(--gray-100);
         }
 
         .grants-table tbody tr:last-child td {
@@ -619,35 +573,84 @@
         }
 
         .grants-table tbody tr:hover {
-            background: rgba(240, 198, 154, 0.1);
+            background: var(--gray-50);
         }
 
-        /* Data Coverage */
+        /* Data Coverage Timeline */
         .data-coverage-section {
-            margin-bottom: 1.5rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .data-coverage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
         }
 
         .data-coverage-title {
-            font-size: 0.75rem;
+            font-size: 1rem;
             font-weight: 600;
-            color: var(--gray-600);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
+            color: var(--gray-900);
         }
 
-        .year-pills {
+        .data-coverage-subtitle {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .year-timeline {
             display: flex;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
             gap: 0.5rem;
+            padding: 0.5rem 0;
         }
 
-        .year-pill {
-            padding: 0.25rem 0.75rem;
-            background: var(--brand-gold);
-            color: var(--brand-black);
-            border-radius: 1rem;
+        .year-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.375rem;
+            flex: 1;
+        }
+
+        .year-icon {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .year-indicator.has-data .year-icon {
+            background: #10B981;
+            color: white;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+
+        .year-indicator.no-data .year-icon {
+            background: var(--gray-100);
+            color: var(--gray-400);
+            border: 2px dashed var(--gray-300);
+        }
+
+        .year-label {
             font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+        }
+
+        .year-indicator.has-data .year-label {
+            color: var(--gray-900);
             font-weight: 600;
         }
 
@@ -659,11 +662,10 @@
 
         .array-item {
             padding: 0.5rem 1rem;
-            background: var(--brand-gold);
-            color: var(--brand-black);
+            background: var(--gray-100);
+            color: var(--gray-700);
             border-radius: 0.5rem;
             font-size: 0.9rem;
-            font-weight: 600;
         }
 
         /* Responsive */
@@ -723,7 +725,6 @@
             border-radius: 0.75rem;
             padding: 1.5rem;
             box-shadow: var(--shadow);
-            border: 2px solid var(--brand-gold);
         }
 
         .skeleton-title {
@@ -739,58 +740,45 @@
         /* Search Type Toggle */
         .search-type-toggle {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 0.75rem;
-        }
-
-        .toggle-label {
-            display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: var(--gray-100);
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            gap: 0.25rem;
+        }
+
+        .toggle-option {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
             cursor: pointer;
-            font-size: 0.75rem;
-            color: var(--gray-600);
-        }
-
-        .toggle-label-text {
             font-weight: 500;
+            color: var(--gray-600);
+            transition: all 0.2s;
         }
 
-        .toggle-label input[type="checkbox"] {
-            display: none;
+        .toggle-option:hover {
+            color: var(--gray-900);
         }
 
-        .toggle-slider {
-            position: relative;
-            width: 32px;
-            height: 18px;
-            background: var(--gray-300);
-            border-radius: 18px;
-            transition: background 0.3s;
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
+        .toggle-option.active {
             background: white;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.3s;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
         }
 
-        .toggle-label input[type="checkbox"]:checked + .toggle-slider {
-            background: var(--brand-gold);
-        }
-
-        .toggle-label input[type="checkbox"]:checked + .toggle-slider::before {
-            transform: translateX(14px);
-        }
-
-        .toggle-label:hover .toggle-slider {
-            opacity: 0.8;
+        .search-type-icon {
+            font-size: 1rem;
+            margin-right: 0.25rem;
         }
 
         /* Pagination */
@@ -801,25 +789,24 @@
             gap: 1rem;
             margin-top: 1.5rem;
             padding-top: 1.5rem;
-            border-top: 2px solid var(--brand-gold);
+            border-top: 1px solid var(--gray-200);
         }
 
         .pagination-button {
             padding: 0.5rem 1rem;
-            background: var(--brand-gold);
-            border: 2px solid var(--brand-gold);
+            background: white;
+            border: 1px solid var(--gray-300);
             border-radius: 0.375rem;
             cursor: pointer;
-            font-weight: 700;
-            color: var(--brand-black);
+            font-weight: 500;
+            color: var(--gray-700);
             transition: all 0.2s;
-            font-family: 'Futura', sans-serif;
         }
 
         .pagination-button:hover:not(:disabled) {
-            background: var(--brand-gold-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-gold);
+            background: var(--gray-50);
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         .pagination-button:disabled {
@@ -828,40 +815,41 @@
         }
 
         .pagination-info {
-            color: var(--brand-white);
+            color: var(--gray-600);
             font-size: 0.9rem;
-            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="logo-container">
-                <svg xmlns="http://www.w3.org/2000/svg" width="41.913" height="67.353" viewBox="0 0 41.913 67.353" class="logo"><defs><style>.a{fill:#F0C69A;}</style></defs><g transform="translate(-10.203 -5.781)"><path class="a" d="M52.93,5.781" transform="translate(-21.643)"></path><path class="a" d="M29.082,51.042c.683-.184,1.374-.343,2.065-.47l-11.285.036.018,4.914A26.742,26.742,0,0,1,29.082,51.042Z" transform="translate(-4.893 -22.689)"></path><path class="a" d="M73.728,50.425l-11.389.04A27.087,27.087,0,0,1,73.747,55.44Z" transform="translate(-26.409 -22.614)"></path><path class="a" d="M14.071,117.533a21,21,0,0,0,19.056,12.209,21.193,21.193,0,0,0,3.782-.344l-1.812-6.79Z" transform="translate(-1.959 -56.608)"></path><path class="a" d="M74.805,77.3,81.65,96.981a21,21,0,0,0-1.8-24.715Z" transform="translate(-32.724 -33.678)"></path><path class="a" d="M56.444,94.195l5.143,19.273a20.885,20.885,0,0,0,7.827-4.948c.176-.176.343-.357.512-.538L62.892,87.76Z" transform="translate(-23.423 -41.526)"></path><path class="a" d="M32.9,74.784l9.267,2.493L56.28,63.2a20.814,20.814,0,0,0-7.756-4.188Z" transform="translate(-11.499 -26.962)"></path><path class="a" d="M34.319,57.413c-.637-.058-1.276-.089-1.915-.089A20.981,20.981,0,0,0,12.646,71.241l6.3,1.7Z" transform="translate(-1.237 -26.109)"></path><path class="a" d="M29.808,97.219l-19.254-5.18a21.095,21.095,0,0,0,.253,8.846l21.355,5.154Z" transform="translate(0 -43.694)"></path><path class="a" d="M31.983,25.625l-2.367,2.609-2.36-2.6,2.367-2.609Z" transform="translate(-8.638 -8.734)"></path><path class="a" d="M72.943,25.625l-2.367,2.609-2.36-2.6,2.367-2.609Z" transform="translate(-29.386 -8.734)"></path><path class="a" d="M51.055,13.81l-1.146,1.262,1.146,1.262.212.233-5.14,5.8-1.971-2.257-7.271-8.346,1.868-2.372L36.106,5.919,33.311,9.395l1.868,2.372-7.272,8.346L25.936,22.37c-2.011-2.271-4.011-4.529-5.14-5.8l.211-.233,1.146-1.262L21.007,13.81l-1.145-1.262V25.4H52.2V12.548Z" transform="translate(-4.893 -0.07)"></path></g></svg>
-            </div>
+            <h1>UK Charity Explorer</h1>
+            <p class="subtitle">Search UK charities with natural language powered by AI</p>
         </header>
 
         <div class="search-section">
+            <div class="search-type-toggle">
+                <div class="toggle-container">
+                    <button type="button" class="toggle-option active" data-type="natural" onclick="switchSearchType('natural')">
+                        <span class="search-type-icon">🤖</span>Natural Language
+                    </button>
+                    <button type="button" class="toggle-option" data-type="name" onclick="switchSearchType('name')">
+                        <span class="search-type-icon">🔍</span>Name Search
+                    </button>
+                </div>
+            </div>
             <form id="searchForm" class="search-form">
                 <input
                     type="text"
                     id="searchInput"
                     class="search-input"
-                    placeholder="Describe what you're looking for..."
+                    placeholder="Search charities... e.g., 'Large grantmakers supporting education in London'"
                     required
                 />
                 <button type="submit" id="searchButton" class="search-button">
                     <span id="buttonText">Search</span>
                 </button>
             </form>
-            <div class="search-type-toggle">
-                <label class="toggle-label">
-                    <span class="toggle-label-text">Name search</span>
-                    <input type="checkbox" id="searchToggle" onclick="toggleSearchType()">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
         </div>
 
         <div id="errorContainer"></div>
@@ -909,19 +897,24 @@
         let currentGrantsPage = 1;
         const GRANTS_PER_PAGE = 10;
 
-        // Toggle Search Type
-        function toggleSearchType() {
-            const checkbox = document.getElementById('searchToggle');
+        // Switch Search Type
+        function switchSearchType(type) {
+            searchType = type;
+
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-option').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update placeholder text
             const searchInput = document.getElementById('searchInput');
-
-            // Update search type based on checkbox state
-            searchType = checkbox.checked ? 'name' : 'natural';
-
-            // Update placeholder
-            if (searchType === 'name') {
-                searchInput.placeholder = 'Enter charity name...';
+            if (type === 'name') {
+                searchInput.placeholder = 'Enter charity name... e.g., "British Heart Foundation" or "Oxfam"';
             } else {
-                searchInput.placeholder = 'Describe what you\'re looking for...';
+                searchInput.placeholder = 'Search charities... e.g., "Large grantmakers supporting education in London"';
             }
         }
 
@@ -1035,10 +1028,6 @@
             // Get income for stats display
             const income = charity.latest_income || 0;
 
-            // Calculate total grants count from recent_grants array
-            const recentGrants = parseArray(charity.recent_grants);
-            const totalGrantsCount = recentGrants.length;
-
             // Determine status badge based on linked_charity_number
             let statusBadgeHTML = '';
             const linkedCharityNumber = charity.linked_charity_number;
@@ -1074,7 +1063,7 @@
                         </div>
                         <div class="stat">
                             <div class="stat-label">Grants Given</div>
-                            <div class="stat-value">${totalGrantsCount}</div>
+                            <div class="stat-value">${charity.grants_given_count || 0}</div>
                         </div>
                         ${areas.length > 0 ? `
                         <div class="stat">
@@ -1387,10 +1376,16 @@
 
                 ${processedYears.length > 0 ? `
                 <div class="data-coverage-section">
-                    <div class="data-coverage-title">Data Coverage</div>
-                    <div class="year-pills">
+                    <div class="data-coverage-header">
+                        <span class="data-coverage-title">📄 Data Coverage</span>
+                        <span class="data-coverage-subtitle">Years with processed PDF data</span>
+                    </div>
+                    <div class="year-timeline">
                         ${processedYears.map(year => `
-                            <span class="year-pill">${year}</span>
+                            <div class="year-indicator has-data">
+                                <div class="year-icon">✓</div>
+                                <div class="year-label">${year}</div>
+                            </div>
                         `).join('')}
                     </div>
                 </div>
