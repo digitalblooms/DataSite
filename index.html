@@ -1832,7 +1832,7 @@
                 <div class="data-coverage-section">
                     <div class="data-coverage-title">Data Coverage</div>
                     <div class="year-pills">
-                        ${processedYears.map(year => `<a class="year-pill" href="https://all-charity-annual-reports.s3.eu-west-2.amazonaws.com/${charity.organisation_number}_${year}.pdf" target="_blank" rel="noopener noreferrer">${year}</a>`).join('')}
+                        ${processedYears.map(year => `<a class="year-pill" href="https://all-charity-annual-reports.s3.eu-west-2.amazonaws.com/${charity.organisation_number}_${year}.pdf" target="_blank" rel="noopener noreferrer">${year} ↗</a>`).join('')}
                     </div>
                 </div>
                 ` : ''}
