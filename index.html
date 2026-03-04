@@ -643,6 +643,11 @@
             transform: rotate(180deg);
         }
 
+        .grants-table th:hover { opacity: 0.8; }
+        .sort-indicator { font-size: 0.65rem; opacity: 0.5; }
+        .sort-indicator.asc::after { content: ' ▲'; }
+        .sort-indicator.desc::after { content: ' ▼'; }
+
         .grants-year-body {
             overflow: hidden;
             max-height: 0;
@@ -746,7 +751,11 @@
             border-radius: 1rem;
             font-size: 0.75rem;
             font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.15s;
         }
+        .year-pill:hover { opacity: 0.75; }
 
         .array-list {
             display: flex;
@@ -1638,6 +1647,10 @@
                 grantsByYear[year].push(grant);
             });
 
+            // Store globally for sort function access
+            window._grantData = grantsByYear;
+            window._grantSortState = {};
+
             // Sort years descending
             const sortedYears = Object.keys(grantsByYear).sort((a, b) => {
                 if (a === 'Unknown') return 1;
@@ -1819,7 +1832,7 @@
                 <div class="data-coverage-section">
                     <div class="data-coverage-title">Data Coverage</div>
                     <div class="year-pills">
-                        ${processedYears.map(year => `<span class="year-pill">${year}</span>`).join('')}
+                        ${processedYears.map(year => `<a class="year-pill" href="https://all-charity-annual-reports.s3.eu-west-2.amazonaws.com/${charity.organisation_number}_${year}.pdf" target="_blank" rel="noopener noreferrer">${year}</a>`).join('')}
                     </div>
                 </div>
                 ` : ''}
@@ -1838,8 +1851,8 @@
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th style="text-align:left;width:70%">Recipient</th>
-                                            <th style="text-align:right;width:30%">Amount</th>
+                                            <th id="grant-th-recipient-${year}" style="text-align:left;width:70%;cursor:pointer;user-select:none;" onclick="sortGrantYear('${year}','recipient',this)">Recipient <span class="sort-indicator"></span></th>
+                                            <th id="grant-th-amount-${year}" style="text-align:right;width:30%;cursor:pointer;user-select:none;" onclick="sortGrantYear('${year}','amount',this)">Amount <span class="sort-indicator"></span></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1873,6 +1886,46 @@
                 }, { once: true });
             }
             if (chevron) chevron.classList.toggle('open', !isOpen);
+        }
+
+        function sortGrantYear(year, field, thEl) {
+            const data = window._grantData && window._grantData[year];
+            if (!data) return;
+
+            const state = window._grantSortState[year] || { field: null, dir: 'asc' };
+            const newDir = (state.field === field && state.dir === 'asc') ? 'desc' : 'asc';
+            window._grantSortState[year] = { field, dir: newDir };
+
+            const sorted = [...data].sort((a, b) => {
+                if (field === 'recipient') {
+                    const na = (a.recipient_name || '').toLowerCase();
+                    const nb = (b.recipient_name || '').toLowerCase();
+                    return newDir === 'asc' ? na.localeCompare(nb) : nb.localeCompare(na);
+                } else {
+                    return newDir === 'asc' ? (a.amount || 0) - (b.amount || 0) : (b.amount || 0) - (a.amount || 0);
+                }
+            });
+
+            // Re-render tbody
+            const body = document.getElementById('grant-year-' + year);
+            if (!body) return;
+            const tbody = body.querySelector('tbody');
+            if (!tbody) return;
+            tbody.innerHTML = sorted.map(grant => `
+                <tr>
+                    <td>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</td>
+                    <td style="text-align:right;font-weight:600">${formatCurrency(grant.amount || 0)}</td>
+                </tr>
+            `).join('');
+
+            // Update sort indicators on both headers
+            ['recipient', 'amount'].forEach(f => {
+                const th = document.getElementById('grant-th-' + f + '-' + year);
+                if (!th) return;
+                const ind = th.querySelector('.sort-indicator');
+                if (!ind) return;
+                ind.className = 'sort-indicator' + (f === field ? (' ' + newDir) : '');
+            });
         }
 
         function populateTrusteesTab(charity) {
