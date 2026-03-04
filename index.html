@@ -622,6 +622,103 @@
             background: rgba(240, 198, 154, 0.1);
         }
 
+        /* Collapsible year sections */
+        .grants-year-header {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .grants-year-header:hover {
+            opacity: 0.88;
+        }
+
+        .grants-chevron {
+            font-size: 0.7rem;
+            display: inline-block;
+            transition: transform 0.25s ease;
+            line-height: 1;
+        }
+
+        .grants-chevron.open {
+            transform: rotate(180deg);
+        }
+
+        .grants-year-body {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+
+        /* Analytics panel */
+        .analytics-panel {
+            background: linear-gradient(135deg, var(--brand-black), var(--brand-grey-1));
+            border: 2px solid var(--brand-gold);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .analytics-panel-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--brand-gold-dark);
+            margin-bottom: 1rem;
+        }
+
+        .analytics-row {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .analytics-row.four-col { grid-template-columns: repeat(4, 1fr); }
+        .analytics-row.three-col { grid-template-columns: repeat(3, 1fr); }
+
+        @media (max-width: 560px) {
+            .analytics-row.four-col,
+            .analytics-row.three-col { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .analytics-item { text-align: center; }
+
+        .analytics-item-label {
+            font-size: 0.63rem;
+            color: var(--brand-white);
+            opacity: 0.55;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+
+        .analytics-item-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--brand-gold);
+            line-height: 1.2;
+        }
+
+        .analytics-item-value.na {
+            font-size: 0.8rem;
+            opacity: 0.4;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .analytics-item-note {
+            font-size: 0.62rem;
+            color: var(--brand-white);
+            opacity: 0.4;
+            margin-top: 0.2rem;
+        }
+
+        .analytics-divider {
+            height: 1px;
+            background: rgba(240, 198, 154, 0.2);
+            margin: 1rem 0;
+        }
+
         /* Data Coverage */
         .data-coverage-section {
             margin-bottom: 1.5rem;
@@ -664,6 +761,99 @@
             border-radius: 0.5rem;
             font-size: 0.9rem;
             font-weight: 600;
+        }
+
+        /* Trustees */
+        .trustees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .trustee-card {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem 1rem;
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+            border: 2px solid var(--gray-200);
+            transition: border-color 0.2s;
+        }
+
+        .trustee-card:hover {
+            border-color: var(--brand-gold);
+        }
+
+        .trustee-card.trustee-chair {
+            border-color: var(--brand-gold);
+            background: rgba(240, 198, 154, 0.08);
+        }
+
+        .trustee-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand-black), var(--brand-grey-1));
+            color: var(--brand-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .trustee-chair .trustee-avatar {
+            background: linear-gradient(135deg, var(--brand-gold), var(--brand-gold-dark));
+            color: var(--brand-black);
+        }
+
+        .trustee-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trustee-name {
+            font-weight: 700;
+            color: var(--brand-black);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trustee-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+            margin-top: 0.25rem;
+            align-items: center;
+        }
+
+        .trustee-role-badge {
+            padding: 0.125rem 0.5rem;
+            background: var(--brand-gold);
+            color: var(--brand-black);
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .trustee-org-badge {
+            padding: 0.125rem 0.5rem;
+            background: var(--brand-grey-1);
+            color: var(--brand-white);
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .trustee-date {
+            font-size: 0.75rem;
+            color: var(--gray-600);
         }
 
         /* Responsive */
@@ -890,19 +1080,21 @@
                 <button class="tab" onclick="switchTab(1)">Financials</button>
                 <button class="tab" onclick="switchTab(2)">Strategy</button>
                 <button class="tab" onclick="switchTab(3)">Grants</button>
+                <button class="tab" onclick="switchTab(4)">Trustees</button>
             </div>
             <div class="modal-content">
                 <div id="tab0" class="tab-panel active"></div>
                 <div id="tab1" class="tab-panel"></div>
                 <div id="tab2" class="tab-panel"></div>
                 <div id="tab3" class="tab-panel"></div>
+                <div id="tab4" class="tab-panel"></div>
             </div>
         </div>
     </div>
 
     <script>
         // Configuration - UPDATE THIS WITH YOUR N8N WEBHOOK URL
-        const WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/charity-search';
+        const WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/554bf179-93a7-444d-b87c-667a0ff1a4f1';
 
         let currentResults = [];
         let searchType = 'natural'; // 'natural' or 'name'
@@ -1105,6 +1297,7 @@
             populateFinancialsTab(charity);
             populateStrategyTab(charity);
             populateGrantsTab(charity);
+            populateTrusteesTab(charity);
 
             // Show modal
             modal.classList.add('active');
@@ -1132,7 +1325,7 @@
 
         function populateOverviewTab(charity) {
             const tab = document.getElementById('tab0');
-            const charityCommissionUrl = `https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/${charity.registered_charity_number || charity.organisation_number}`;
+            const charityCommissionUrl = `https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/${charity.organisation_number}`;
 
             tab.innerHTML = `
                 <div class="info-grid">
@@ -1207,52 +1400,172 @@
         function populateFinancialsTab(charity) {
             const tab = document.getElementById('tab1');
 
+            // Prefer AI-extracted financials where available
+            const hasAI = charity.ai_total_income || charity.ai_total_expenditure;
+            const income = charity.ai_total_income || charity.latest_income || 0;
+            const expenditure = charity.ai_total_expenditure || charity.latest_expenditure || 0;
+
             tab.innerHTML = `
+                ${hasAI && charity.ai_financial_year ? `
+                <div style="margin-bottom:1rem; padding:0.5rem 1rem; background: rgba(240,198,154,0.15); border-left: 4px solid var(--brand-gold); border-radius: 0.25rem; font-size:0.85rem; color: var(--gray-700);">
+                    AI-extracted data from annual accounts (${charity.ai_financial_year})
+                </div>` : ''}
                 <div class="stat-grid">
                     <div class="stat-card">
-                        <div class="stat-card-label">Latest Income</div>
-                        <div class="stat-card-value">${formatCurrency(charity.latest_income || 0)}</div>
+                        <div class="stat-card-label">Total Income</div>
+                        <div class="stat-card-value">${formatCurrency(income)}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-card-label">Latest Expenditure</div>
-                        <div class="stat-card-value">${formatCurrency(charity.latest_expenditure || 0)}</div>
+                        <div class="stat-card-label">Total Expenditure</div>
+                        <div class="stat-card-value">${formatCurrency(expenditure)}</div>
                     </div>
-                    ${charity.expenditure_grants ? `
+                    ${charity.ai_charitable_expenditure ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Charitable Expenditure</div>
+                        <div class="stat-card-value">${formatCurrency(charity.ai_charitable_expenditure)}</div>
+                    </div>` : (charity.expenditure_grants ? `
                     <div class="stat-card">
                         <div class="stat-card-label">Grant Expenditure</div>
                         <div class="stat-card-value">${formatCurrency(charity.expenditure_grants)}</div>
-                    </div>
-                    ` : ''}
+                    </div>` : '')}
                     ${charity.income_donations ? `
                     <div class="stat-card">
                         <div class="stat-card-label">Donations & Legacies</div>
                         <div class="stat-card-value">${formatCurrency(charity.income_donations)}</div>
-                    </div>
-                    ` : ''}
+                    </div>` : ''}
                     ${charity.income_charitable ? `
                     <div class="stat-card">
                         <div class="stat-card-label">Charitable Activities</div>
                         <div class="stat-card-value">${formatCurrency(charity.income_charitable)}</div>
-                    </div>
-                    ` : ''}
+                    </div>` : ''}
                     ${charity.total_grants_given ? `
                     <div class="stat-card">
                         <div class="stat-card-label">Total Grants Given</div>
                         <div class="stat-card-value">${formatCurrency(charity.total_grants_given)}</div>
-                    </div>
-                    ` : ''}
+                    </div>` : ''}
                 </div>
+
+                ${(charity.ai_unrestricted_funds || charity.ai_restricted_funds || charity.ai_endowment_funds || charity.ai_cash || charity.ai_investments) ? `
+                <div style="margin-bottom:0.75rem; font-size:0.75rem; font-weight:700; color: var(--brand-black); text-transform:uppercase; letter-spacing:0.05em;">Funds & Assets</div>
+                <div class="stat-grid">
+                    ${charity.ai_unrestricted_funds ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Unrestricted Funds</div>
+                        <div class="stat-card-value">${formatCurrency(charity.ai_unrestricted_funds)}</div>
+                    </div>` : ''}
+                    ${charity.ai_restricted_funds ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Restricted Funds</div>
+                        <div class="stat-card-value">${formatCurrency(charity.ai_restricted_funds)}</div>
+                    </div>` : ''}
+                    ${charity.ai_endowment_funds ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Endowment Funds</div>
+                        <div class="stat-card-value">${formatCurrency(charity.ai_endowment_funds)}</div>
+                    </div>` : ''}
+                    ${charity.ai_cash ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Cash</div>
+                        <div class="stat-card-value">${formatCurrency(charity.ai_cash)}</div>
+                    </div>` : ''}
+                    ${charity.ai_investments ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Investments</div>
+                        <div class="stat-card-value">${formatCurrency(charity.ai_investments)}</div>
+                    </div>` : ''}
+                </div>` : ''}
             `;
+        }
+
+        function parseStrategyJson(value) {
+            // Returns the parsed object/array, or null if not parseable
+            if (!value || value === 'null') return null;
+            // Already a proper object/array
+            if (typeof value === 'object' && !Array.isArray(value)) return value;
+            // If it's an array, check if it looks like broken JSON fragments (starts with '{')
+            // and try to rejoin and parse it
+            if (Array.isArray(value)) {
+                if (value.length === 0) return null;
+                const rejoined = value.join(',');
+                if (rejoined.trimStart().startsWith('{') || rejoined.trimStart().startsWith('[')) {
+                    try { return JSON.parse(rejoined); } catch { /* fall through */ }
+                }
+                // It's a plain array of strings — return as-is
+                return value.filter(Boolean);
+            }
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (!trimmed || trimmed === 'null') return null;
+                try { return JSON.parse(trimmed); } catch { return null; }
+            }
+            return null;
+        }
+
+        function renderExclusions(raw) {
+            // raw is an object like {excludes_individuals: true, other_exclusions: ["x"]}
+            // or an array of strings
+            const obj = parseStrategyJson(raw);
+            if (!obj) return [];
+
+            if (Array.isArray(obj)) return obj.filter(Boolean);
+
+            const labels = {
+                excludes_individuals: 'Excludes individuals',
+                excludes_organisations: 'Excludes organisations',
+                excludes_political: 'Excludes political activity'
+            };
+
+            const results = [];
+            for (const [key, val] of Object.entries(obj)) {
+                if (key === 'other_exclusions') {
+                    if (Array.isArray(val)) val.filter(Boolean).forEach(v => results.push(v));
+                } else if (val === true) {
+                    results.push(labels[key] || key.replace(/_/g, ' '));
+                }
+            }
+            return results;
+        }
+
+        function renderLeverageSignals(raw) {
+            // Returns array of {label, items} sections
+            const obj = parseStrategyJson(raw);
+            if (!obj) return [];
+
+            if (Array.isArray(obj)) {
+                return obj.filter(Boolean).length > 0
+                    ? [{ label: 'Signals', items: obj.filter(Boolean) }]
+                    : [];
+            }
+
+            const labelMap = {
+                flagship_partners: 'Flagship Partners',
+                notable_donors: 'Notable Donors',
+                co_trusteeships: 'Co-trusteeships'
+            };
+
+            const sections = [];
+            for (const [key, val] of Object.entries(obj)) {
+                if (Array.isArray(val) && val.filter(Boolean).length > 0) {
+                    sections.push({ label: labelMap[key] || key.replace(/_/g, ' '), items: val.filter(Boolean) });
+                }
+            }
+            return sections;
         }
 
         function populateStrategyTab(charity) {
             const tab = document.getElementById('tab2');
-            const beneficiaries = parseArray(charity.beneficiary_scope);
-            const themes = parseArray(charity.thematic_tags);
-            const outcomes = parseArray(charity.desired_outcomes);
-            const geoSpecifics = parseArray(charity.geo_specifics);
+            const missionTags = parseArray(charity.mission_tags);
+            const geography = parseArray(charity.geography);
+            const exclusions = renderExclusions(charity.exclusion_flags);
+            const leverageSections = renderLeverageSignals(charity.leverage_signals);
 
-            if (beneficiaries.length === 0 && themes.length === 0 && outcomes.length === 0 && !charity.funding_style) {
+            const hasContent = charity.mission_text
+                || missionTags.length > 0
+                || geography.length > 0
+                || exclusions.length > 0
+                || leverageSections.length > 0;
+
+            if (!hasContent) {
                 tab.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
@@ -1265,67 +1578,46 @@
 
             tab.innerHTML = `
                 <div class="info-grid">
-                    ${beneficiaries.length > 0 ? `
+                    ${charity.mission_text ? `
                     <div class="info-item">
-                        <div class="info-label">Beneficiary Scope</div>
-                        <div class="array-list">
-                            ${beneficiaries.map(b => `<span class="array-item">${escapeHtml(b)}</span>`).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
-                    ${themes.length > 0 ? `
+                        <div class="info-label">Mission</div>
+                        <div class="info-value">${escapeHtml(charity.mission_text)}</div>
+                    </div>` : ''}
+                    ${missionTags.length > 0 ? `
                     <div class="info-item">
-                        <div class="info-label">Thematic Tags</div>
+                        <div class="info-label">Mission Tags</div>
                         <div class="array-list">
-                            ${themes.map(t => `<span class="array-item">${escapeHtml(t)}</span>`).join('')}
+                            ${missionTags.map(t => `<span class="array-item">${escapeHtml(t)}</span>`).join('')}
                         </div>
-                    </div>
-                    ` : ''}
-                    ${charity.geo_focus_level ? `
+                    </div>` : ''}
+                    ${geography.length > 0 ? `
                     <div class="info-item">
                         <div class="info-label">Geographic Focus</div>
-                        <div class="info-value">${escapeHtml(charity.geo_focus_level)}</div>
-                    </div>
-                    ` : ''}
-                    ${geoSpecifics.length > 0 ? `
-                    <div class="info-item">
-                        <div class="info-label">Geographic Specifics</div>
                         <div class="array-list">
-                            ${geoSpecifics.map(g => `<span class="array-item">${escapeHtml(g)}</span>`).join('')}
+                            ${geography.map(g => `<span class="array-item">${escapeHtml(g)}</span>`).join('')}
                         </div>
-                    </div>
-                    ` : ''}
-                    ${charity.funding_style ? `
+                    </div>` : ''}
+                    ${exclusions.length > 0 ? `
                     <div class="info-item">
-                        <div class="info-label">Funding Style</div>
-                        <div class="info-value">${escapeHtml(charity.funding_style)}</div>
-                    </div>
-                    ` : ''}
-                    ${outcomes.length > 0 ? `
-                    <div class="info-item">
-                        <div class="info-label">Desired Outcomes</div>
+                        <div class="info-label">Exclusions</div>
                         <div class="array-list">
-                            ${outcomes.map(o => `<span class="array-item">${escapeHtml(o)}</span>`).join('')}
+                            ${exclusions.map(e => `<span class="array-item" style="background: #FEE2E2; color: #991B1B;">${escapeHtml(e)}</span>`).join('')}
                         </div>
-                    </div>
-                    ` : ''}
-                    ${charity.outcome_narrative ? `
+                    </div>` : ''}
+                    ${leverageSections.map(section => `
                     <div class="info-item">
-                        <div class="info-label">Outcome Narrative</div>
-                        <div class="info-value">${escapeHtml(charity.outcome_narrative)}</div>
-                    </div>
-                    ` : ''}
+                        <div class="info-label">${escapeHtml(section.label)}</div>
+                        <div class="array-list">
+                            ${section.items.map(item => `<span class="array-item" style="background: #D1FAE5; color: #065F46;">${escapeHtml(item)}</span>`).join('')}
+                        </div>
+                    </div>`).join('')}
                 </div>
             `;
         }
 
-        function populateGrantsTab(charity, page = 1) {
+        function populateGrantsTab(charity) {
             const tab = document.getElementById('tab3');
             const grants = parseArray(charity.recent_grants);
-
-            // Reset to page 1 when opening modal
-            if (!page || page < 1) page = 1;
-            currentGrantsPage = page;
 
             if (grants.length === 0) {
                 tab.innerHTML = `
@@ -1342,9 +1634,7 @@
             const grantsByYear = {};
             grants.forEach(grant => {
                 const year = grant.grant_year || 'Unknown';
-                if (!grantsByYear[year]) {
-                    grantsByYear[year] = [];
-                }
+                if (!grantsByYear[year]) grantsByYear[year] = [];
                 grantsByYear[year].push(grant);
             });
 
@@ -1355,74 +1645,315 @@
                 return parseInt(b) - parseInt(a);
             });
 
-            // Calculate totals per year
+            // Per-year totals
             const yearTotals = {};
             sortedYears.forEach(year => {
                 yearTotals[year] = grantsByYear[year].reduce((sum, g) => sum + (g.amount || 0), 0);
             });
 
-            // Generate year coverage timeline - only show years with data
+            // ── Analytics calculations ──────────────────────────────────────
+            const allAmounts = grants.map(g => g.amount || 0).filter(a => a > 0);
+            const totalAmount = allAmounts.reduce((s, a) => s + a, 0);
+
+            // Unique recipients
+            const uniqueCount = new Set(grants.map(g => (g.recipient_name || '').trim().toLowerCase())).size;
+
+            // Largest grant
+            const largestGrant = allAmounts.length > 0 ? Math.max(...allAmounts) : 0;
+
+            // Median grant
+            let medianGrant = 0;
+            if (allAmounts.length > 0) {
+                const sorted = [...allAmounts].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                medianGrant = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            }
+
+            // Mean grant
+            const meanGrant = allAmounts.length > 0 ? totalAmount / allAmounts.length : 0;
+
+            // Top 5 recipient concentration
+            const recipientTotals = {};
+            grants.forEach(g => {
+                const name = (g.recipient_name || 'Unknown').trim().toLowerCase();
+                recipientTotals[name] = (recipientTotals[name] || 0) + (g.amount || 0);
+            });
+            const sortedRecipAmts = Object.values(recipientTotals).sort((a, b) => b - a);
+            const top5Sum = sortedRecipAmts.slice(0, Math.min(5, sortedRecipAmts.length)).reduce((s, a) => s + a, 0);
+            const top5Pct = totalAmount > 0 ? (top5Sum / totalAmount * 100) : 0;
+
+            // Repeat recipient rate & uplift (requires ≥2 distinct years)
+            const knownYears = sortedYears.filter(y => y !== 'Unknown');
+            let repeatRecipientRate = null;
+            let repeatCount = 0;
+            let totalUniqueWithYear = 0;
+            let upliftRate = null;
+
+            if (knownYears.length >= 2) {
+                const recipientYears = {};
+                const recipientAmtsByYear = {};
+                grants.forEach(g => {
+                    if (!g.grant_year || g.grant_year === 'Unknown') return;
+                    const name = (g.recipient_name || '').trim().toLowerCase();
+                    if (!recipientYears[name]) {
+                        recipientYears[name] = new Set();
+                        recipientAmtsByYear[name] = {};
+                    }
+                    recipientYears[name].add(g.grant_year);
+                    recipientAmtsByYear[name][g.grant_year] = (recipientAmtsByYear[name][g.grant_year] || 0) + (g.amount || 0);
+                });
+
+                totalUniqueWithYear = Object.keys(recipientYears).length;
+                repeatCount = Object.values(recipientYears).filter(yrs => yrs.size > 1).length;
+                repeatRecipientRate = totalUniqueWithYear > 0 ? (repeatCount / totalUniqueWithYear * 100) : 0;
+
+                if (repeatCount > 0) {
+                    const upliftValues = [];
+                    Object.entries(recipientYears).forEach(([name, yearsSet]) => {
+                        if (yearsSet.size < 2) return;
+                        const recipYears = [...yearsSet].filter(y => y !== 'Unknown').map(Number).sort((a, b) => b - a);
+                        if (recipYears.length < 2) return;
+                        const latestAmt = recipientAmtsByYear[name][recipYears[0].toString()] || 0;
+                        const prevAmt   = recipientAmtsByYear[name][recipYears[1].toString()] || 0;
+                        if (prevAmt > 0 && latestAmt > 0) {
+                            upliftValues.push((latestAmt - prevAmt) / prevAmt * 100);
+                        }
+                    });
+                    if (upliftValues.length > 0) {
+                        upliftRate = upliftValues.reduce((s, v) => s + v, 0) / upliftValues.length;
+                    }
+                }
+            }
+
+            // Year coverage pills
             const processedYears = parseArray(charity.processed_grant_years)
                 .filter(y => y != null && y !== 'Unknown')
                 .map(y => parseInt(y))
-                .sort((a, b) => a - b); // Sort ascending (oldest to newest)
+                .sort((a, b) => a - b);
+
+            // Formatting helpers
+            const fmtPct     = (v, d = 1) => `${v.toFixed(d)}%`;
+            const fmtUplift  = v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+            const upliftColor = upliftRate !== null
+                ? (upliftRate >= 0 ? 'var(--success)' : 'var(--danger)')
+                : '';
+
+            // Repeat/uplift note helpers
+            const repeatNote = repeatRecipientRate !== null
+                ? `${repeatCount} of ${totalUniqueWithYear} recipients`
+                : 'Single year of data';
+            const upliftNote = upliftRate !== null
+                ? 'avg YoY for repeat recipients'
+                : (repeatRecipientRate === 0 ? 'No repeat recipients' : 'Insufficient data');
 
             tab.innerHTML = `
-                <div class="stat-grid" style="margin-bottom: 2rem;">
-                    <div class="stat-card">
-                        <div class="stat-card-label">Total Grants Given</div>
-                        <div class="stat-card-value">${grants.length}</div>
+                <div class="analytics-panel">
+                    <div class="analytics-panel-title">Giving Analytics</div>
+                    <div class="analytics-row four-col" style="margin-bottom:1rem;">
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Total Grants</div>
+                            <div class="analytics-item-value">${grants.length}</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Total Amount</div>
+                            <div class="analytics-item-value">${formatCurrency(charity.total_grants_given || 0)}</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Unique Recipients</div>
+                            <div class="analytics-item-value">${uniqueCount}</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Latest Year</div>
+                            <div class="analytics-item-value">${charity.latest_grant_year || '—'}</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Total Amount</div>
-                        <div class="stat-card-value">${formatCurrency(charity.total_grants_given || 0)}</div>
+                    <div class="analytics-divider"></div>
+                    <div class="analytics-row four-col">
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Largest Grant</div>
+                            <div class="analytics-item-value">${formatCurrency(largestGrant)}</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Median Grant</div>
+                            <div class="analytics-item-value">${formatCurrency(medianGrant)}</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Mean Grant</div>
+                            <div class="analytics-item-value">${formatCurrency(meanGrant)}</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Top 5 Concentration</div>
+                            <div class="analytics-item-value">${fmtPct(top5Pct)}</div>
+                            <div class="analytics-item-note">${uniqueCount < 5 ? `of ${uniqueCount} recipients` : 'of total funds'}</div>
+                        </div>
                     </div>
-                    ${charity.latest_grant_year ? `
-                    <div class="stat-card">
-                        <div class="stat-card-label">Latest Grant Year</div>
-                        <div class="stat-card-value">${charity.latest_grant_year}</div>
+                    <div class="analytics-divider"></div>
+                    <div class="analytics-row three-col">
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Repeat Recipient Rate</div>
+                            ${repeatRecipientRate !== null
+                                ? `<div class="analytics-item-value">${fmtPct(repeatRecipientRate)}</div>
+                                   <div class="analytics-item-note">${repeatNote}</div>`
+                                : `<div class="analytics-item-value na">N/A</div>
+                                   <div class="analytics-item-note">${repeatNote}</div>`
+                            }
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Avg Uplift Rate</div>
+                            ${upliftRate !== null
+                                ? `<div class="analytics-item-value" style="color:${upliftColor}">${fmtUplift(upliftRate)}</div>
+                                   <div class="analytics-item-note">${upliftNote}</div>`
+                                : `<div class="analytics-item-value na">N/A</div>
+                                   <div class="analytics-item-note">${upliftNote}</div>`
+                            }
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-item-label">Years of Data</div>
+                            <div class="analytics-item-value">${knownYears.length || sortedYears.length}</div>
+                            <div class="analytics-item-note">${processedYears.length >= 2 ? processedYears[0] + ' – ' + processedYears[processedYears.length - 1] : (processedYears[0] || '')}</div>
+                        </div>
                     </div>
-                    ` : ''}
                 </div>
 
                 ${processedYears.length > 0 ? `
                 <div class="data-coverage-section">
                     <div class="data-coverage-title">Data Coverage</div>
                     <div class="year-pills">
-                        ${processedYears.map(year => `
-                            <span class="year-pill">${year}</span>
-                        `).join('')}
+                        ${processedYears.map(year => `<span class="year-pill">${year}</span>`).join('')}
                     </div>
                 </div>
                 ` : ''}
 
-                ${sortedYears.map(year => `
+                ${sortedYears.map((year, i) => `
                     <div class="grants-year-section">
-                        <div class="grants-year-header">
+                        <div class="grants-year-header" onclick="toggleGrantYear('grant-year-${year}', this)">
                             <span class="grants-year-title">${year}</span>
-                            <span class="grants-year-stats">${grantsByYear[year].length} grants • ${formatCurrency(yearTotals[year])}</span>
+                            <div style="display:flex;align-items:center;gap:0.75rem;">
+                                <span class="grants-year-stats">${grantsByYear[year].length} grant${grantsByYear[year].length !== 1 ? 's' : ''} · ${formatCurrency(yearTotals[year])}</span>
+                                <span class="grants-chevron">▼</span>
+                            </div>
                         </div>
-                        <div class="grants-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th style="text-align: left; width: 70%;">Recipient</th>
-                                        <th style="text-align: right; width: 30%;">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${grantsByYear[year].map(grant => `
+                        <div class="grants-year-body" id="grant-year-${year}">
+                            <div class="grants-table">
+                                <table>
+                                    <thead>
                                         <tr>
-                                            <td>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</td>
-                                            <td style="text-align: right; font-weight: 600;">${formatCurrency(grant.amount || 0)}</td>
+                                            <th style="text-align:left;width:70%">Recipient</th>
+                                            <th style="text-align:right;width:30%">Amount</th>
                                         </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        ${grantsByYear[year].map(grant => `
+                                            <tr>
+                                                <td>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</td>
+                                                <td style="text-align:right;font-weight:600">${formatCurrency(grant.amount || 0)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 `).join('')}
             `;
+        }
+
+        function toggleGrantYear(id, headerEl) {
+            const body = document.getElementById(id);
+            const chevron = headerEl ? headerEl.querySelector('.grants-chevron') : null;
+            if (!body) return;
+            const isOpen = body.style.maxHeight !== '0px' && body.style.maxHeight !== '';
+            if (isOpen) {
+                body.style.maxHeight = body.scrollHeight + 'px';
+                requestAnimationFrame(() => requestAnimationFrame(() => { body.style.maxHeight = '0px'; }));
+            } else {
+                body.style.maxHeight = body.scrollHeight + 'px';
+                body.addEventListener('transitionend', () => {
+                    if (body.style.maxHeight !== '0px') body.style.maxHeight = 'none';
+                }, { once: true });
+            }
+            if (chevron) chevron.classList.toggle('open', !isOpen);
+        }
+
+        function populateTrusteesTab(charity) {
+            const tab = document.getElementById('tab4');
+            const rawTrustees = parseArray(charity.trustees);
+
+            // Deduplicate by name (case-insensitive), preserving chair status
+            const seen = new Map();
+            rawTrustees.filter(t => t && t.trustee_name).forEach(t => {
+                const key = (t.trustee_name || '').trim().toUpperCase();
+                if (!seen.has(key)) {
+                    seen.set(key, { ...t });
+                } else if (t.trustee_is_chair) {
+                    seen.get(key).trustee_is_chair = true;
+                }
+            });
+            const trustees = Array.from(seen.values());
+
+            if (trustees.length === 0) {
+                tab.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <h3 class="empty-state-title">No trustee data available</h3>
+                        <p class="empty-state-description">Trustee information has not been recorded for this charity.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort: chairs first, then alphabetically
+            const sorted = [...trustees].sort((a, b) => {
+                if (a.trustee_is_chair && !b.trustee_is_chair) return -1;
+                if (!a.trustee_is_chair && b.trustee_is_chair) return 1;
+                return (a.trustee_name || '').localeCompare(b.trustee_name || '');
+            });
+
+            const chairs = sorted.filter(t => t.trustee_is_chair);
+            const others = sorted.filter(t => !t.trustee_is_chair);
+
+            tab.innerHTML = `
+                <div class="stat-grid" style="margin-bottom:1.5rem;">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Trustees</div>
+                        <div class="stat-card-value">${trustees.length}</div>
+                    </div>
+                    ${chairs.length > 0 ? `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Chair${chairs.length > 1 ? 's' : ''}</div>
+                        <div class="stat-card-value">${escapeHtml(chairs.map(c => c.trustee_name).join(', '))}</div>
+                    </div>` : ''}
+                </div>
+                <div class="trustees-grid">
+                    ${sorted.map(t => `
+                    <div class="trustee-card ${t.trustee_is_chair ? 'trustee-chair' : ''}">
+                        <div class="trustee-avatar">${getInitials(t.trustee_name)}</div>
+                        <div class="trustee-info">
+                            <div class="trustee-name">${escapeHtml(t.trustee_name || 'Unknown')}</div>
+                            <div class="trustee-meta">
+                                ${t.trustee_is_chair ? '<span class="trustee-role-badge">Chair</span>' : ''}
+                                ${t.individual_or_organisation === 'organisation' ? '<span class="trustee-org-badge">Organisation</span>' : ''}
+                                ${t.trustee_date_of_appointment ? `<span class="trustee-date">Appointed ${formatTrusteeDate(t.trustee_date_of_appointment)}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`).join('')}
+                </div>
+            `;
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const words = name.trim().split(/\s+/);
+            if (words.length === 1) return words[0].charAt(0).toUpperCase();
+            return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+        }
+
+        function formatTrusteeDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+            } catch { return dateStr; }
         }
 
         // Utility Functions
