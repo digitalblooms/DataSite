@@ -1541,7 +1541,7 @@
             const resultsInfo = document.getElementById('resultsInfo');
 
             button.disabled = true;
-            buttonText.innerHTML = '<div class="spinner"></div><span>Searching...</span>';
+            buttonText.innerHTML = '<span class="spinner"></span><span>Searching...</span>';
             errorContainer.innerHTML = '';
             resultsInfo.style.display = 'none';
 
@@ -2108,12 +2108,25 @@
             const grants = parseArray(charity.recent_grants);
 
             if (grants.length === 0) {
+                const processedYears = parseArray(charity.processed_grant_years)
+                    .filter(y => y != null && y !== 'Unknown')
+                    .map(y => parseInt(y))
+                    .sort((a, b) => a - b);
+
                 tab.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">💰</div>
                         <h3 class="empty-state-title">No grant data available</h3>
                         <p class="empty-state-description">This charity has not reported any grants in the recent years.</p>
                     </div>
+                    ${processedYears.length > 0 ? `
+                    <div class="data-coverage-section">
+                        <div class="data-coverage-title">Data Coverage</div>
+                        <div class="year-pills">
+                            ${processedYears.map(year => `<a class="year-pill" href="https://all-charity-annual-reports.s3.eu-west-2.amazonaws.com/${charity.organisation_number}_${year}.pdf" target="_blank" rel="noopener noreferrer">${year} ↗</a>`).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
                 `;
                 return;
             }
