@@ -1557,10 +1557,10 @@
                     <div class="modal-tabs">
                         <button class="tab active" onclick="switchTab(0)">Overview</button>
                         <button class="tab" onclick="switchTab(1)">Financials</button>
-                        <button class="tab" onclick="switchTab(2)">Strategy</button>
+                        <button class="tab" onclick="switchTab(2)">Prospect Intelligence</button>
                         <button class="tab" onclick="switchTab(3)">Grants</button>
                         <button class="tab" onclick="switchTab(4)">Trustees</button>
-                        <button class="tab" onclick="switchTab(5)">Documents</button>
+                        <button class="tab" onclick="switchTab(5)">Annual Reports</button>
                     </div>
                     <div class="modal-content">
                         <div id="tab0" class="tab-panel active"></div>
@@ -2224,8 +2224,8 @@
                 tab.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
-                        <h3 class="empty-state-title">No strategy data available</h3>
-                        <p class="empty-state-description">Strategy information has not been extracted for this charity.</p>
+                        <h3 class="empty-state-title">No prospect intelligence available</h3>
+                        <p class="empty-state-description">Prospect intelligence has not been extracted for this charity.</p>
                     </div>
                 `;
                 return;
@@ -2235,12 +2235,12 @@
                 <div class="info-grid">
                     ${charity.mission_text ? `
                     <div class="info-item">
-                        <div class="info-label">Mission</div>
+                        <div class="info-label">Strategic Focus</div>
                         <div class="info-value">${escapeHtml(charity.mission_text)}</div>
                     </div>` : ''}
                     ${missionTags.length > 0 ? `
                     <div class="info-item">
-                        <div class="info-label">Mission Tags</div>
+                        <div class="info-label">Impact Areas</div>
                         <div class="array-list">
                             ${missionTags.map(t => `<span class="array-item">${escapeHtml(t)}</span>`).join('')}
                         </div>
@@ -2254,7 +2254,7 @@
                     </div>` : ''}
                     ${exclusions.length > 0 ? `
                     <div class="info-item">
-                        <div class="info-label">Exclusions</div>
+                        <div class="info-label">Eligibility Criteria</div>
                         <div class="array-list">
                             ${exclusions.map(e => `<span class="array-item" style="background:rgba(239,68,68,0.1);color:#FCA5A5;border-color:rgba(239,68,68,0.2)">${escapeHtml(e)}</span>`).join('')}
                         </div>
@@ -2446,7 +2446,7 @@
                     <div class="analytics-divider"></div>
                     <div class="analytics-row three-col">
                         <div class="analytics-item">
-                            <div class="analytics-item-label">Repeat Recipient Rate</div>
+                            <div class="analytics-item-label">Repeat Grantee Rate</div>
                             ${repeatRecipientRate !== null
                                 ? `<div class="analytics-item-value">${fmtPct(repeatRecipientRate)}</div>
                                    <div class="analytics-item-note">${repeatNote}</div>`
@@ -2687,7 +2687,7 @@
                         btns.push(`<button class="doc-action-btn" title="Reads the document and extracts grant data" onclick="triggerDocAction(this,${y.year},'extract_grants','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Grants</button>`);
                     }
                     if (y.year === latestDownloadedYear && !y.qualitative_extracted) {
-                        btns.push(`<button class="doc-action-btn" title="Reads the document and extracts qualitative data" onclick="triggerDocAction(this,${y.year},'extract_qualitative','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Qualitative</button>`);
+                        btns.push(`<button class="doc-action-btn" title="Reads the document and extracts strategic intelligence" onclick="triggerDocAction(this,${y.year},'extract_qualitative','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Intelligence</button>`);
                     }
                     return btns.length ? `<div class="doc-actions">${btns.join('')}</div>` : '<span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">—</span>';
                 }
@@ -2712,7 +2712,7 @@
                                 <div class="analytics-item-value">${s.grants_extracted_count ?? '—'}</div>
                             </div>
                             <div class="analytics-item">
-                                <div class="analytics-item-label">Qualitative Extracted</div>
+                                <div class="analytics-item-label">Strategic Intelligence</div>
                                 <div class="analytics-item-value">${s.qualitative_extracted_count ?? '—'}</div>
                             </div>
                         </div>
@@ -2737,7 +2737,7 @@
                                 <th class="center">CC Available</th>
                                 <th class="center">Downloaded</th>
                                 <th class="center">Grants</th>
-                                <th class="center">Qualitative</th>
+                                <th class="center">Intelligence</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
