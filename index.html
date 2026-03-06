@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UK Charity Explorer - Bloomsbury Foundation</title>
+    <title>UK Charity Explorer - Bloomsbury Football Foundation</title>
     <style>
         :root {
             --brand-black: #272726;
@@ -824,6 +824,26 @@
             justify-content: center;
         }
 
+        .drawer-header-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+        .refresh-button {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.09);
+            width: 1.875rem;
+            height: 1.875rem;
+            border-radius: 0.4rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .refresh-button:hover { background: rgba(240,198,154,0.12); border-color: rgba(240,198,154,0.25); color: var(--brand-gold); }
+        .refresh-button.spinning { animation: spin 0.8s linear infinite; pointer-events: none; }
+
         .close-button:hover {
             background: rgba(240,198,154,0.12);
             border-color: rgba(240,198,154,0.25);
@@ -1387,6 +1407,48 @@
             color: rgba(255,255,255,0.3);
         }
 
+        /* ── DOCUMENTS TAB ──────────────────────────────────────────── */
+        .doc-status-badge {
+            display: inline-block;
+            padding: 0.175rem 0.55rem;
+            border-radius: 9999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .doc-status-badge.processed { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+        .doc-status-badge.partial   { background: rgba(245,158,11,0.15);  color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+        .doc-status-badge.available { background: rgba(96,165,250,0.12);  color: #60A5FA;        border: 1px solid rgba(96,165,250,0.25); }
+        .doc-status-badge.none      { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); }
+
+        .doc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 1rem; }
+        .doc-table th {
+            text-align: left; padding: 0.5rem 0.75rem;
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+            color: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .doc-table th.center, .doc-table td.center { text-align: center; }
+        .doc-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+        .doc-table tr:last-child td { border-bottom: none; }
+        .doc-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .doc-year-cell { font-weight: 700; color: var(--brand-gold); font-size: 0.85rem; }
+        .doc-check { color: var(--success); font-size: 0.9rem; }
+        .doc-cross { color: rgba(255,255,255,0.2); font-size: 0.9rem; }
+        .doc-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+
+        .doc-action-btn {
+            padding: 0.2rem 0.55rem;
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+            border-radius: 9999px; cursor: pointer; white-space: nowrap;
+            border: 1px solid rgba(240,198,154,0.35); background: rgba(240,198,154,0.07); color: var(--brand-gold);
+            font-family: inherit; transition: all 0.15s;
+        }
+        .doc-action-btn:hover:not(:disabled) { background: rgba(240,198,154,0.15); border-color: rgba(240,198,154,0.55); }
+        .doc-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .doc-action-btn.danger { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.07); color: #EF4444; }
+
         /* ── RESPONSIVE ─────────────────────────────────────────────── */
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
@@ -1440,7 +1502,7 @@
             </div>
             <div class="hero-text">
                 <h1>UK Charity Explorer</h1>
-                <p class="subtitle">Powered by Bloomsbury Foundation</p>
+                <p class="subtitle">Powered by Bloomsbury Football Foundation</p>
             </div>
             <div class="search-wrapper">
                 <div class="search-mode-pills">
@@ -1483,7 +1545,10 @@
                     <h2 class="drawer-title" id="modalTitle"></h2>
                     <p class="drawer-subtitle" id="modalSubtitle"></p>
                 </div>
-                <button class="close-button" onclick="closeModal()">✕</button>
+                <div class="drawer-header-actions">
+                    <button class="refresh-button" id="charityRefreshBtn" onclick="refreshCharity()" title="Refresh charity data">↺</button>
+                    <button class="close-button" onclick="closeModal()">✕</button>
+                </div>
             </div>
             <div class="drawer-body">
                 <div class="drawer-sidebar" id="drawerSidebar"></div>
@@ -1494,6 +1559,7 @@
                         <button class="tab" onclick="switchTab(2)">Strategy</button>
                         <button class="tab" onclick="switchTab(3)">Grants</button>
                         <button class="tab" onclick="switchTab(4)">Trustees</button>
+                        <button class="tab" onclick="switchTab(5)">Documents</button>
                     </div>
                     <div class="modal-content">
                         <div id="tab0" class="tab-panel active"></div>
@@ -1501,6 +1567,7 @@
                         <div id="tab2" class="tab-panel"></div>
                         <div id="tab3" class="tab-panel"></div>
                         <div id="tab4" class="tab-panel"></div>
+                        <div id="tab5" class="tab-panel"></div>
                     </div>
                 </div>
             </div>
@@ -1510,6 +1577,10 @@
     <script>
         // Configuration
         const WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/554bf179-93a7-444d-b87c-667a0ff1a4f1';
+        const DOCS_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/charity-documents';
+        const DOCS_ACTION_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/25399b0f-59ca-4084-b227-d0d0ee5a5e83';
+        const CHARITY_LOOKUP_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/5db6ca2d-4d57-4ef9-9cff-c0d06e300847'; // TODO: n8n flow that accepts { orgNumber } and returns one charity object in search-result format
+        const FINANCIALS_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/26691f33-e97e-409f-8636-85286108307e';
 
         let currentResults = [];
         let searchType = 'natural'; // 'natural' or 'name'
@@ -1747,12 +1818,15 @@
             const charity = currentResults[index];
             const backdrop = document.getElementById('drawerBackdrop');
 
+            window._currentCharity = charity;
+            window._docsLoaded = false;
+            window._financialsLoaded = false;
+
             document.getElementById('modalTitle').textContent = charity.charity_name || 'Unknown Charity';
             document.getElementById('modalSubtitle').textContent = `Charity No. ${charity.registered_charity_number || charity.organisation_number || 'N/A'}`;
 
             populateSidebar(charity);
             populateOverviewTab(charity);
-            populateFinancialsTab(charity);
             populateStrategyTab(charity);
             populateGrantsTab(charity);
             populateTrusteesTab(charity);
@@ -1775,6 +1849,14 @@
             document.querySelectorAll('.tab-panel').forEach((panel, i) => {
                 panel.classList.toggle('active', i === tabIndex);
             });
+            if (tabIndex === 1 && window._currentCharity && !window._financialsLoaded) {
+                window._financialsLoaded = true;
+                populateFinancialsTab(window._currentCharity);
+            }
+            if (tabIndex === 5 && window._currentCharity && !window._docsLoaded) {
+                window._docsLoaded = true;
+                populateDocumentsTab(window._currentCharity);
+            }
         }
 
         function populateOverviewTab(charity) {
@@ -1850,48 +1932,98 @@
             `;
         }
 
-        function populateFinancialsTab(charity) {
+        async function populateFinancialsTab(charity) {
             const tab = document.getElementById('tab1');
 
-            const hasAI      = charity.ai_total_income || charity.ai_total_expenditure;
-            const income      = charity.ai_total_income      || charity.latest_income      || 0;
-            const expenditure = charity.ai_total_expenditure || charity.latest_expenditure || 0;
-            const surplus     = income - expenditure;
-            const noData      = income === 0 && expenditure === 0;
+            tab.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-pulse"><div class="loading-pulse-inner"></div></div>
+                    <div class="loading-messages">
+                        <div class="loading-messages-wrap">
+                            <span class="loading-message visible">Fetching financial data…</span>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-            const headlineClass  = noData ? 'neutral' : surplus >= 0 ? 'surplus' : 'deficit';
-            const headlineLabel  = noData ? 'No financial data' : surplus >= 0 ? 'Surplus' : 'Deficit';
-            const marginPct      = income > 0 ? Math.abs(surplus / income * 100).toFixed(1) : null;
+            let years = [];
+            try {
+                const resp = await fetch(FINANCIALS_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        charityNumber: charity.registered_charity_number || charity.organisation_number
+                    })
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                let raw = await resp.json();
+                if (!Array.isArray(raw)) raw = raw ? [raw] : [];
+                years = raw
+                    .filter(y => y.income != null || y.expenditure != null)
+                    .sort((a, b) => new Date(a.financial_period_end_date) - new Date(b.financial_period_end_date));
+            } catch (err) {
+                console.error('Financials webhook error:', err);
+                tab.innerHTML = `
+                    <div class="error-message" style="margin-top:1rem;">
+                        <span class="error-icon">⚠</span>
+                        <div><strong>Could not load financial data:</strong> ${escapeHtml(err.message)}</div>
+                    </div>`;
+                return;
+            }
 
-            const maxVal         = Math.max(income, expenditure);
-            const incomePct      = maxVal > 0 ? (income      / maxVal * 100).toFixed(1) : 0;
-            const expenditurePct = maxVal > 0 ? (expenditure / maxVal * 100).toFixed(1) : 0;
-            const overBudget     = expenditure > income;
+            if (years.length === 0) {
+                tab.innerHTML = `
+                    <div class="empty-state" style="padding:3rem 2rem;">
+                        <div class="empty-state-icon">📊</div>
+                        <h3 class="empty-state-title">No financial data available</h3>
+                        <p class="empty-state-description">No annual return data has been found for this charity.</p>
+                    </div>`;
+                return;
+            }
 
-            // Breakdown items
-            const incomeItems = [];
-            if (charity.income_donations)   incomeItems.push({ label: 'Donations & Legacies',    value: charity.income_donations });
-            if (charity.income_charitable)  incomeItems.push({ label: 'Charitable Activities',   value: charity.income_charitable });
+            const latest      = years[years.length - 1];
+            const latestInc   = latest.income || 0;
+            const latestExp   = latest.expenditure || 0;
+            const latestSurp  = latestInc - latestExp;
+            const latestYear  = new Date(latest.financial_period_end_date).getFullYear();
+            const headlineClass = latestSurp >= 0 ? 'surplus' : 'deficit';
+            const headlineLabel = latestSurp >= 0 ? 'Surplus' : 'Deficit';
+            const marginPct   = latestInc > 0 ? Math.abs(latestSurp / latestInc * 100).toFixed(1) : null;
 
-            const expendItems = [];
-            const charitableExp      = charity.ai_charitable_expenditure || charity.expenditure_grants;
-            const charitableExpLabel = charity.ai_charitable_expenditure ? 'Charitable Expenditure' : 'Grant Expenditure';
-            if (charitableExp) expendItems.push({ label: charitableExpLabel, value: charitableExp });
+            const maxVal = Math.max(...years.map(y => Math.max(y.income || 0, y.expenditure || 0)));
 
-            const hasBreakdown = incomeItems.length > 0 || expendItems.length > 0;
+            const incomeKeys = [
+                { key: 'inc_donations_and_legacies',   label: 'Donations & Legacies' },
+                { key: 'inc_charitable_activities',    label: 'Charitable Activities' },
+                { key: 'inc_other_trading_activities', label: 'Trading Activities' },
+                { key: 'inc_investment',               label: 'Investment' },
+                { key: 'inc_endowments',               label: 'Endowments' },
+                { key: 'inc_other',                    label: 'Other' },
+            ];
+            const expKeys = [
+                { key: 'exp_charitable_activities',  label: 'Charitable Activities' },
+                { key: 'exp_raising_funds',          label: 'Raising Funds' },
+                { key: 'exp_governance',             label: 'Governance' },
+                { key: 'exp_grants_institution',     label: 'Grants to Institutions' },
+                { key: 'exp_investment_management',  label: 'Investment Management' },
+                { key: 'exp_other',                  label: 'Other' },
+            ];
 
-            const hasFunds = charity.ai_unrestricted_funds || charity.ai_restricted_funds
-                          || charity.ai_endowment_funds    || charity.ai_cash || charity.ai_investments;
+            const latestWithBreakdown = [...years].reverse().find(y =>
+                incomeKeys.some(k => y[k.key] != null && y[k.key] > 0) ||
+                expKeys.some(k => y[k.key] != null && y[k.key] > 0)
+            );
 
-            const renderLines = (items, total) => {
+            const renderLines = (keys, row, total) => {
+                const items = keys.filter(k => row[k.key] != null && row[k.key] > 0);
                 if (items.length === 0) return `<div class="fin-nil">No breakdown available</div>`;
                 return items.map((item, i) => {
-                    const pct = total > 0 ? (item.value / total * 100).toFixed(1) : 0;
+                    const pct = total > 0 ? (row[item.key] / total * 100).toFixed(1) : 0;
                     return `
                         <div class="fin-line">
                             <div class="fin-line-top">
                                 <span class="fin-line-label">${item.label}</span>
-                                <span class="fin-line-value">${formatCurrency(item.value)}</span>
+                                <span class="fin-line-value">${formatCurrency(row[item.key])}</span>
                             </div>
                             <div class="fin-line-track">
                                 <div class="fin-line-fill" style="--bar-pct:${pct}%;--bar-delay:${0.12 + i * 0.07}s"></div>
@@ -1901,75 +2033,61 @@
             };
 
             tab.innerHTML = `
-                ${hasAI && charity.ai_financial_year ? `
-                <div class="ai-banner">AI-extracted data from annual accounts (${charity.ai_financial_year})</div>` : ''}
-
                 <div class="fin-headline ${headlineClass}">
                     <div>
-                        <div class="fin-headline-label">${headlineLabel}</div>
-                        ${!noData ? `<div class="fin-headline-amount">${formatCurrency(Math.abs(surplus))}</div>` : ''}
+                        <div class="fin-headline-label">${headlineLabel} · ${latestYear}</div>
+                        <div class="fin-headline-amount">${formatCurrency(Math.abs(latestSurp))}</div>
                         ${marginPct ? `<div class="fin-headline-margin">${marginPct}% of income</div>` : ''}
                     </div>
                 </div>
 
-                ${maxVal > 0 ? `
-                <div class="fin-compare">
-                    <div class="fin-compare-row">
-                        <div class="fin-compare-label">Income</div>
-                        <div class="fin-compare-track">
-                            <div class="fin-compare-fill income" style="--bar-pct:${incomePct}%;--bar-delay:0ms"></div>
-                        </div>
-                        <div class="fin-compare-value">${formatCurrency(income)}</div>
-                    </div>
-                    <div class="fin-compare-row">
-                        <div class="fin-compare-label">Expenditure</div>
-                        <div class="fin-compare-track">
-                            <div class="fin-compare-fill expenditure ${overBudget ? 'over' : ''}" style="--bar-pct:${expenditurePct}%;--bar-delay:80ms"></div>
-                        </div>
-                        <div class="fin-compare-value dim">${formatCurrency(expenditure)}</div>
-                    </div>
-                </div>` : ''}
+                <div class="section-heading" style="margin-top:1.25rem;margin-bottom:0.75rem;">Income vs Spending</div>
 
-                ${hasBreakdown ? `
+                ${years.map((y, i) => {
+                    const yr  = new Date(y.financial_period_end_date).getFullYear();
+                    const inc = y.income || 0;
+                    const exp = y.expenditure || 0;
+                    const incPct = maxVal > 0 ? (inc / maxVal * 100).toFixed(1) : 0;
+                    const expPct = maxVal > 0 ? (exp / maxVal * 100).toFixed(1) : 0;
+                    return `
+                        <div style="margin-bottom:${i < years.length - 1 ? '1rem' : '0'};">
+                            <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:0.35rem;">${yr}</div>
+                            <div class="fin-compare" style="margin-bottom:0;">
+                                <div class="fin-compare-row">
+                                    <div class="fin-compare-label">Income</div>
+                                    <div class="fin-compare-track">
+                                        <div class="fin-compare-fill income" style="--bar-pct:${incPct}%;--bar-delay:${i * 50}ms"></div>
+                                    </div>
+                                    <div class="fin-compare-value">${formatCurrency(inc)}</div>
+                                </div>
+                                <div class="fin-compare-row">
+                                    <div class="fin-compare-label">Spending</div>
+                                    <div class="fin-compare-track">
+                                        <div class="fin-compare-fill expenditure ${exp > inc ? 'over' : ''}" style="--bar-pct:${expPct}%;--bar-delay:${i * 50 + 25}ms"></div>
+                                    </div>
+                                    <div class="fin-compare-value dim">${formatCurrency(exp)}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('')}
+
+                ${latestWithBreakdown ? `
+                <div class="section-heading" style="margin-top:1.5rem;">Breakdown · ${new Date(latestWithBreakdown.financial_period_end_date).getFullYear()}</div>
                 <div class="fin-columns">
                     <div>
                         <div class="fin-col-header">
                             <span class="fin-col-title">Income</span>
-                            <span class="fin-col-total">${formatCurrency(income)}</span>
+                            <span class="fin-col-total">${formatCurrency(latestWithBreakdown.income || 0)}</span>
                         </div>
-                        ${renderLines(incomeItems, income)}
+                        ${renderLines(incomeKeys, latestWithBreakdown, latestWithBreakdown.income || 0)}
                     </div>
                     <div>
                         <div class="fin-col-header">
                             <span class="fin-col-title">Expenditure</span>
-                            <span class="fin-col-total">${formatCurrency(expenditure)}</span>
+                            <span class="fin-col-total">${formatCurrency(latestWithBreakdown.expenditure || 0)}</span>
                         </div>
-                        ${renderLines(expendItems, expenditure)}
-                        ${charity.total_grants_given ? `
-                        <div class="fin-line" style="margin-top:0.75rem;padding-top:0.625rem;border-top:1px solid rgba(240,198,154,0.08);">
-                            <div class="fin-line-top">
-                                <span class="fin-line-label">of which: Grants Given</span>
-                                <span class="fin-line-value">${formatCurrency(charity.total_grants_given)}</span>
-                            </div>
-                        </div>` : ''}
+                        ${renderLines(expKeys, latestWithBreakdown, latestWithBreakdown.expenditure || 0)}
                     </div>
-                </div>` : `
-                ${charity.total_grants_given ? `
-                <div style="margin-bottom:1.25rem;">
-                    <div class="fin-col-header">
-                        <span class="fin-col-title">Grants Given</span>
-                        <span class="fin-col-total">${formatCurrency(charity.total_grants_given)}</span>
-                    </div>
-                </div>` : ''}`}
-
-                ${hasFunds ? `
-                <div class="section-heading" style="margin-top:0.5rem;">Funds &amp; Assets</div>
-                <div class="stat-grid">
-                    ${charity.ai_unrestricted_funds ? `<div class="stat-card"><div class="stat-card-label">Unrestricted Funds</div><div class="stat-card-value">${formatCurrency(charity.ai_unrestricted_funds)}</div></div>` : ''}
-                    ${charity.ai_restricted_funds   ? `<div class="stat-card"><div class="stat-card-label">Restricted Funds</div><div class="stat-card-value">${formatCurrency(charity.ai_restricted_funds)}</div></div>` : ''}
-                    ${charity.ai_endowment_funds    ? `<div class="stat-card"><div class="stat-card-label">Endowment Funds</div><div class="stat-card-value">${formatCurrency(charity.ai_endowment_funds)}</div></div>` : ''}
-                    ${charity.ai_cash               ? `<div class="stat-card"><div class="stat-card-label">Cash</div><div class="stat-card-value">${formatCurrency(charity.ai_cash)}</div></div>` : ''}
-                    ${charity.ai_investments        ? `<div class="stat-card"><div class="stat-card-label">Investments</div><div class="stat-card-value">${formatCurrency(charity.ai_investments)}</div></div>` : ''}
                 </div>` : ''}
             `;
         }
@@ -2463,6 +2581,209 @@
                     </div>`).join('')}
                 </div>
             `;
+        }
+
+        async function populateDocumentsTab(charity) {
+            const tab = document.getElementById('tab5');
+            tab.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-pulse"><div class="loading-pulse-inner"></div></div>
+                    <div class="loading-messages">
+                        <div class="loading-messages-wrap">
+                            <span class="loading-message visible">Fetching document status…</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch(DOCS_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        charityNumber: charity.registered_charity_number || charity.organisation_number,
+                        orgNumber: charity.organisation_number
+                    })
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                let data = await resp.json();
+                if (Array.isArray(data)) data = data[0];
+                if (!data || !data.success) throw new Error(data?.error || 'Unexpected response');
+
+                const s = data.summary;
+                const years = (data.years || []).slice().sort((a, b) => b.year - a.year);
+                const orgNum = data.org_number;
+                const charNum = data.charity_number;
+                const latestDownloadedYear = (years.find(y => y.downloaded) || {}).year;
+
+                function statusBadge(y) {
+                    if (y.processing_status === 'fully_processed') return '<span class="doc-status-badge processed">Processed</span>';
+                    if (y.downloaded && (y.grants_extracted || y.qualitative_extracted)) return '<span class="doc-status-badge partial">Partial</span>';
+                    if (y.downloaded) return '<span class="doc-status-badge partial">Downloaded</span>';
+                    if (y.available_from_cc) return '<span class="doc-status-badge available">Available</span>';
+                    return '<span class="doc-status-badge none">Not Available</span>';
+                }
+
+                function checkIcon(val) {
+                    return val ? '<span class="doc-check">✓</span>' : '<span class="doc-cross">–</span>';
+                }
+
+                function actionBtns(y) {
+                    const btns = [];
+                    const id = escapeHtml(y.airtable_record_id || '');
+                    if (y.available_from_cc && !y.downloaded) {
+                        btns.push(`<button class="doc-action-btn" onclick="triggerDocAction(this,${y.year},'download','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Download PDF</button>`);
+                    }
+                    if (y.downloaded && !y.grants_extracted) {
+                        btns.push(`<button class="doc-action-btn" title="Reads the document and extracts grant data" onclick="triggerDocAction(this,${y.year},'extract_grants','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Grants</button>`);
+                    }
+                    if (y.year === latestDownloadedYear && !y.qualitative_extracted) {
+                        btns.push(`<button class="doc-action-btn" title="Reads the document and extracts qualitative data" onclick="triggerDocAction(this,${y.year},'extract_qualitative','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Qualitative</button>`);
+                    }
+                    return btns.length ? `<div class="doc-actions">${btns.join('')}</div>` : '<span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">—</span>';
+                }
+
+                tab.innerHTML = `
+                    <div class="analytics-panel">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                            <div class="analytics-panel-title" style="margin-bottom:0;">Document Summary</div>
+                            <button class="doc-action-btn" onclick="window._docsLoaded=false; populateDocumentsTab(window._currentCharity)" style="font-size:0.6rem;">↺ Refresh</button>
+                        </div>
+                        <div class="analytics-row four-col">
+                            <div class="analytics-item">
+                                <div class="analytics-item-label">Available from CC</div>
+                                <div class="analytics-item-value">${s.total_available_from_cc ?? '—'}</div>
+                            </div>
+                            <div class="analytics-item">
+                                <div class="analytics-item-label">Downloaded</div>
+                                <div class="analytics-item-value">${s.total_downloaded ?? '—'}</div>
+                            </div>
+                            <div class="analytics-item">
+                                <div class="analytics-item-label">Grants Extracted</div>
+                                <div class="analytics-item-value">${s.grants_extracted_count ?? '—'}</div>
+                            </div>
+                            <div class="analytics-item">
+                                <div class="analytics-item-label">Qualitative Extracted</div>
+                                <div class="analytics-item-value">${s.qualitative_extracted_count ?? '—'}</div>
+                            </div>
+                        </div>
+                        ${!s.has_latest && s.latest_available_year ? `
+                        <div class="analytics-divider"></div>
+                        <div style="font-size:0.72rem;color:var(--warning);padding:0.25rem 0;">
+                            ⚠ Latest year (${s.latest_available_year}) is available from CC but not yet downloaded.
+                        </div>` : ''}
+                    </div>
+
+                    ${years.length === 0 ? `
+                    <div class="empty-state" style="padding:3rem 2rem;">
+                        <div class="empty-state-icon">📄</div>
+                        <h3 class="empty-state-title">No documents on record</h3>
+                        <p class="empty-state-description">No annual reports have been found for this charity yet.</p>
+                    </div>` : `
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Status</th>
+                                <th class="center">CC Available</th>
+                                <th class="center">Downloaded</th>
+                                <th class="center">Grants</th>
+                                <th class="center">Qualitative</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${years.map(y => `
+                            <tr>
+                                <td class="doc-year-cell">${y.year}</td>
+                                <td>${statusBadge(y)}</td>
+                                <td class="center">${checkIcon(y.available_from_cc)}</td>
+                                <td class="center">${checkIcon(y.downloaded)}</td>
+                                <td class="center">${checkIcon(y.grants_extracted)}</td>
+                                <td class="center">${checkIcon(y.qualitative_extracted)}</td>
+                                <td>${actionBtns(y)}</td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>`}
+                `;
+            } catch (err) {
+                tab.innerHTML = `
+                    <div class="error-message" style="margin-top:1rem;">
+                        <span class="error-icon">⚠</span>
+                        <div><strong>Could not load documents:</strong> ${escapeHtml(err.message)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function triggerDocAction(btn, year, action, airtableId, orgNumber, charityNumber) {
+            const label = btn.textContent;
+            btn.disabled = true;
+            const loadingText = action === 'download' ? 'Downloading…' : 'Reading & extracting…';
+            btn.textContent = loadingText;
+            try {
+                const resp = await fetch(DOCS_ACTION_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, year, org_number: orgNumber, charity_number: charityNumber, airtable_record_id: airtableId })
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const text = await resp.text();
+                const isDone = text.includes('extraction_complete') || text.includes('download_complete');
+                if (!isDone) throw new Error('Unexpected response');
+                btn.textContent = '✓ Done';
+                setTimeout(() => {
+                    window._docsLoaded = false;
+                    populateDocumentsTab(window._currentCharity);
+                    if (action === 'extract_grants' || action === 'extract_qualitative') {
+                        refreshCharity();
+                    }
+                }, 800);
+            } catch (err) {
+                btn.textContent = 'Failed';
+                btn.classList.add('danger');
+                setTimeout(() => {
+                    btn.textContent = label;
+                    btn.classList.remove('danger');
+                    btn.disabled = false;
+                }, 2500);
+            }
+        }
+
+        async function refreshCharity() {
+            if (!window._currentCharity) return;
+            const btn = document.getElementById('charityRefreshBtn');
+            if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+            try {
+                const resp = await fetch(CHARITY_LOOKUP_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orgNumber: window._currentCharity.organisation_number })
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                let data = await resp.json();
+                if (Array.isArray(data)) data = data[0];
+                if (data && data.result) data = data.result;
+                if (!data) throw new Error('No data returned');
+
+                // Update in currentResults so the card reflects the new data too
+                const idx = currentResults.findIndex(c => c.organisation_number === window._currentCharity.organisation_number);
+                if (idx !== -1) currentResults[idx] = data;
+                window._currentCharity = data;
+                window._docsLoaded = false;
+                window._financialsLoaded = true;
+
+                populateSidebar(data);
+                populateOverviewTab(data);
+                populateFinancialsTab(data);
+                populateStrategyTab(data);
+                populateGrantsTab(data);
+                populateTrusteesTab(data);
+            } catch (err) {
+                console.error('Charity refresh failed:', err);
+            } finally {
+                if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+            }
         }
 
         function getInitials(name) {
