@@ -1327,14 +1327,50 @@
 
         .trustee-card {
             display: flex;
-            align-items: center;
-            gap: 0.7rem;
+            flex-direction: column;
             padding: 0.7rem 0.875rem;
             background: rgba(255,255,255,0.03);
             border-radius: 0.5rem;
             border: 1px solid rgba(255,255,255,0.06);
             transition: border-color 0.2s;
         }
+        .trustee-card-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .trustee-ai-btn {
+            flex-shrink: 0;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 9999px;
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(135deg, #4f8ef7, #a855f7, #ec4899, #f59e0b);
+            background-size: 300% 300%;
+            animation: ai-gradient 4s ease infinite;
+            color: #fff;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: opacity 0.15s, transform 0.15s;
+        }
+        .trustee-ai-btn:hover:not(:disabled) { opacity: 0.85; transform: scale(1.05); }
+        .trustee-ai-btn:disabled { opacity: 0.5; cursor: not-allowed; animation: none; }
+        .trustee-ai-result {
+            margin-top: 0.65rem;
+            padding-top: 0.65rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.73rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.75);
+        }
+        .trustee-ai-result p { margin-bottom: 0.35rem; }
+        .trustee-ai-result ul { padding-left: 1.1rem; margin-bottom: 0.35rem; }
+        .trustee-ai-result li { margin-bottom: 0.15rem; }
+        .trustee-ai-result strong { color: rgba(255,255,255,0.95); }
 
         .trustee-card:hover { border-color: rgba(240,198,154,0.2); }
 
@@ -1632,6 +1668,7 @@
         const CHARITY_LOOKUP_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/5db6ca2d-4d57-4ef9-9cff-c0d06e300847'; // TODO: n8n flow that accepts { orgNumber } and returns one charity object in search-result format
         const FINANCIALS_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/financials';
         const ALIGNMENT_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/47f38e0e-8e84-4f5f-98c8-ef14945667a1';
+        const TRUSTEE_SEARCH_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/2f14cb02-3a16-494f-9d2d-3fbc3237c5f3';
 
         let currentResults = [];
         let searchType = 'natural'; // 'natural' or 'name'
@@ -2710,20 +2747,50 @@
                     </div>` : ''}
                 </div>
                 <div class="trustees-grid">
-                    ${sorted.map(t => `
+                    ${sorted.map((t, i) => `
                     <div class="trustee-card ${t.trustee_is_chair ? 'trustee-chair' : ''}">
-                        <div class="trustee-avatar">${getInitials(t.trustee_name)}</div>
-                        <div class="trustee-info">
-                            <div class="trustee-name">${escapeHtml(t.trustee_name || 'Unknown')}</div>
-                            <div class="trustee-meta">
-                                ${t.trustee_is_chair ? '<span class="trustee-role-badge">Chair</span>' : ''}
-                                ${t.individual_or_organisation === 'organisation' ? '<span class="trustee-org-badge">Org</span>' : ''}
-                                ${t.trustee_date_of_appointment ? `<span class="trustee-date">${formatTrusteeDate(t.trustee_date_of_appointment)}</span>` : ''}
+                        <div class="trustee-card-row">
+                            <div class="trustee-avatar">${getInitials(t.trustee_name)}</div>
+                            <div class="trustee-info">
+                                <div class="trustee-name">${escapeHtml(t.trustee_name || 'Unknown')}</div>
+                                <div class="trustee-meta">
+                                    ${t.trustee_is_chair ? '<span class="trustee-role-badge">Chair</span>' : ''}
+                                    ${t.individual_or_organisation === 'organisation' ? '<span class="trustee-org-badge">Org</span>' : ''}
+                                    ${t.trustee_date_of_appointment ? `<span class="trustee-date">${formatTrusteeDate(t.trustee_date_of_appointment)}</span>` : ''}
+                                </div>
                             </div>
+                            <button class="trustee-ai-btn" onclick="searchTrustee(this,'${escapeHtml(t.trustee_name || '')}','${escapeHtml(charity.charity_name || '')}',${i})">✦ AI</button>
                         </div>
+                        <div class="trustee-ai-result" id="trustee-result-${i}" style="display:none;"></div>
                     </div>`).join('')}
                 </div>
             `;
+        }
+
+        async function searchTrustee(btn, trusteeName, charityName, idx) {
+            const resultPanel = document.getElementById(`trustee-result-${idx}`);
+            btn.disabled = true;
+            btn.textContent = '…';
+            resultPanel.style.display = 'block';
+            resultPanel.innerHTML = `<span style="color:rgba(255,255,255,0.3);">Searching…</span>`;
+            try {
+                const resp = await fetch(TRUSTEE_SEARCH_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trustee_name: trusteeName, charity_name: charityName })
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                let data = await resp.json();
+                if (Array.isArray(data)) data = data[0];
+                const text = data?.choices?.[0]?.message?.content
+                    || data.result || data.text || JSON.stringify(data);
+                resultPanel.innerHTML = marked.parse(text);
+            } catch (err) {
+                resultPanel.innerHTML = `<span style="color:rgba(239,68,68,0.7);font-size:0.7rem;">${escapeHtml(err.message)}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✦ AI';
+            }
         }
 
         async function populateDocumentsTab(charity) {
