@@ -1409,40 +1409,16 @@
         }
 
         /* ── BLOOMSBURY ALIGNMENT ───────────────────────────────────── */
-        .alignment-cta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            background: linear-gradient(135deg, rgba(240,198,154,0.08) 0%, rgba(240,198,154,0.04) 100%);
-            border: 1px solid rgba(240,198,154,0.2);
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.25rem;
-        }
-        .alignment-cta-title {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--brand-gold);
-            letter-spacing: 0.03em;
-            margin-bottom: 0.2rem;
-        }
-        .alignment-cta-desc {
-            font-size: 0.72rem;
-            color: rgba(255,255,255,0.45);
-            line-height: 1.4;
-        }
         @keyframes ai-gradient {
             0%   { background-position: 0% 50%; }
             50%  { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
         .alignment-btn {
-            flex-shrink: 0;
-            padding: 0.5rem 1.1rem;
-            font-size: 0.72rem;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.68rem;
             font-weight: 700;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
             border-radius: 9999px;
             cursor: pointer;
@@ -1455,6 +1431,7 @@
             white-space: nowrap;
             box-shadow: 0 2px 14px rgba(168,85,247,0.35);
             transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+            margin-bottom: 1.25rem;
         }
         .alignment-btn:hover:not(:disabled) { opacity: 0.9; transform: scale(1.03); box-shadow: 0 4px 20px rgba(168,85,247,0.5); }
         .alignment-btn:disabled { opacity: 0.5; cursor: not-allowed; animation: none; }
@@ -1465,17 +1442,18 @@
             padding: 1rem 1.25rem;
             margin-bottom: 1.25rem;
             font-size: 0.78rem;
-            line-height: 1.65;
+            line-height: 1.7;
             color: rgba(255,255,255,0.8);
         }
-        .alignment-result-header {
-            font-size: 0.62rem;
-            font-weight: 700;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
-            color: var(--brand-gold);
-            margin-bottom: 0.6rem;
-        }
+        .alignment-result h2 { font-size: 0.85rem; color: rgba(255,255,255,0.95); font-weight: 700; margin: 0.9rem 0 0.35rem; }
+        .alignment-result h3 { font-size: 0.78rem; color: var(--brand-gold); font-weight: 700; margin: 0.75rem 0 0.3rem; }
+        .alignment-result h2:first-child, .alignment-result h3:first-child { margin-top: 0; }
+        .alignment-result p { margin-bottom: 0.55rem; }
+        .alignment-result ul, .alignment-result ol { padding-left: 1.25rem; margin-bottom: 0.55rem; }
+        .alignment-result li { margin-bottom: 0.2rem; }
+        .alignment-result strong { color: rgba(255,255,255,0.95); }
+        .alignment-result em { color: rgba(255,255,255,0.65); }
+        .alignment-result hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 0.75rem 0; }
 
         /* ── DOCUMENTS TAB ──────────────────────────────────────────── */
         .doc-status-badge {
@@ -1562,6 +1540,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 </head>
 <body>
 
@@ -2303,13 +2282,7 @@
             }
 
             tab.innerHTML = `
-                <div class="alignment-cta">
-                    <div>
-                        <div class="alignment-cta-title">Bloomsbury Fit Analysis</div>
-                        <div class="alignment-cta-desc">Use AI to assess how well this charity aligns with Bloomsbury's funding priorities.</div>
-                    </div>
-                    <button class="alignment-btn" id="alignmentBtn" onclick="checkBloomsburyAlignment(this)">Check Fit</button>
-                </div>
+                <button class="alignment-btn" id="alignmentBtn" onclick="checkBloomsburyAlignment(this)">✦ AI Analyse</button>
                 <div class="alignment-result" id="alignmentResult" style="display:none;"></div>
                 <div class="info-grid">
                     ${charity.mission_text ? `
@@ -2356,10 +2329,7 @@
             btn.disabled = true;
             btn.textContent = 'Analysing…';
             resultPanel.style.display = 'block';
-            resultPanel.innerHTML = `
-                <div class="alignment-result-header">Bloomsbury Fit Analysis</div>
-                <div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">Analysing alignment with Bloomsbury's funding priorities…</div>
-            `;
+            resultPanel.innerHTML = `<p style="color:rgba(255,255,255,0.35);font-size:0.75rem;">Analysing alignment with Bloomsbury's funding priorities…</p>`;
             try {
                 const resp = await fetch(ALIGNMENT_WEBHOOK_URL, {
                     method: 'POST',
@@ -2378,12 +2348,11 @@
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 let data = await resp.json();
                 if (Array.isArray(data)) data = data[0];
-                const text = data.result || data.analysis || data.message || data.text || JSON.stringify(data);
-                resultPanel.innerHTML = `
-                    <div class="alignment-result-header">Bloomsbury Fit Analysis</div>
-                    <div>${escapeHtml(text).replace(/\n/g, '<br>')}</div>
-                `;
-                btn.textContent = 'Re-analyse';
+                const text = data?.content?.parts?.[0]?.text
+                    || data.result || data.analysis || data.message || data.text
+                    || JSON.stringify(data);
+                resultPanel.innerHTML = marked.parse(text);
+                btn.textContent = '✦ Re-analyse';
             } catch (err) {
                 resultPanel.innerHTML = `
                     <div class="alignment-result-header" style="color:#FCA5A5;">Analysis Failed</div>
