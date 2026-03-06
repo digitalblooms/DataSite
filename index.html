@@ -1408,6 +1408,67 @@
             color: rgba(255,255,255,0.3);
         }
 
+        /* ── BLOOMSBURY ALIGNMENT ───────────────────────────────────── */
+        .alignment-cta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(240,198,154,0.08) 0%, rgba(240,198,154,0.04) 100%);
+            border: 1px solid rgba(240,198,154,0.2);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .alignment-cta-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--brand-gold);
+            letter-spacing: 0.03em;
+            margin-bottom: 0.2rem;
+        }
+        .alignment-cta-desc {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.4;
+        }
+        .alignment-btn {
+            flex-shrink: 0;
+            padding: 0.45rem 1rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border-radius: 9999px;
+            cursor: pointer;
+            border: 1px solid rgba(240,198,154,0.5);
+            background: rgba(240,198,154,0.1);
+            color: var(--brand-gold);
+            font-family: inherit;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .alignment-btn:hover:not(:disabled) { background: rgba(240,198,154,0.2); border-color: rgba(240,198,154,0.7); }
+        .alignment-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .alignment-result {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.78rem;
+            line-height: 1.65;
+            color: rgba(255,255,255,0.8);
+        }
+        .alignment-result-header {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--brand-gold);
+            margin-bottom: 0.6rem;
+        }
+
         /* ── DOCUMENTS TAB ──────────────────────────────────────────── */
         .doc-status-badge {
             display: inline-block;
@@ -1583,6 +1644,7 @@
         const DOCS_ACTION_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/25399b0f-59ca-4084-b227-d0d0ee5a5e83';
         const CHARITY_LOOKUP_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/5db6ca2d-4d57-4ef9-9cff-c0d06e300847'; // TODO: n8n flow that accepts { orgNumber } and returns one charity object in search-result format
         const FINANCIALS_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/financials';
+        const ALIGNMENT_WEBHOOK_URL = 'PLACEHOLDER_ALIGNMENT_WEBHOOK_URL';
 
         let currentResults = [];
         let searchType = 'natural'; // 'natural' or 'name'
@@ -2233,6 +2295,14 @@
             }
 
             tab.innerHTML = `
+                <div class="alignment-cta">
+                    <div>
+                        <div class="alignment-cta-title">Bloomsbury Fit Analysis</div>
+                        <div class="alignment-cta-desc">Use AI to assess how well this charity aligns with Bloomsbury's funding priorities.</div>
+                    </div>
+                    <button class="alignment-btn" id="alignmentBtn" onclick="checkBloomsburyAlignment(this)">Check Fit</button>
+                </div>
+                <div class="alignment-result" id="alignmentResult" style="display:none;"></div>
                 <div class="info-grid">
                     ${charity.mission_text ? `
                     <div class="info-item">
@@ -2269,6 +2339,52 @@
                     </div>`).join('')}
                 </div>
             `;
+        }
+
+        async function checkBloomsburyAlignment(btn) {
+            const charity = window._currentCharity;
+            if (!charity) return;
+            const resultPanel = document.getElementById('alignmentResult');
+            btn.disabled = true;
+            btn.textContent = 'Analysing…';
+            resultPanel.style.display = 'block';
+            resultPanel.innerHTML = `
+                <div class="alignment-result-header">Bloomsbury Fit Analysis</div>
+                <div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">Analysing alignment with Bloomsbury's funding priorities…</div>
+            `;
+            try {
+                const resp = await fetch(ALIGNMENT_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        charity_name: charity.charity_name,
+                        charity_number: charity.registered_charity_number || charity.organisation_number,
+                        mission_text: charity.mission_text || null,
+                        mission_tags: charity.mission_tags || null,
+                        geography: charity.geography || null,
+                        exclusion_flags: charity.exclusion_flags || null,
+                        leverage_signals: charity.leverage_signals || null,
+                        charity_activities: charity.charity_activities || null,
+                    })
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                let data = await resp.json();
+                if (Array.isArray(data)) data = data[0];
+                const text = data.result || data.analysis || data.message || data.text || JSON.stringify(data);
+                resultPanel.innerHTML = `
+                    <div class="alignment-result-header">Bloomsbury Fit Analysis</div>
+                    <div>${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+                `;
+                btn.textContent = 'Re-analyse';
+            } catch (err) {
+                resultPanel.innerHTML = `
+                    <div class="alignment-result-header" style="color:#FCA5A5;">Analysis Failed</div>
+                    <div style="color:rgba(255,255,255,0.4);font-size:0.73rem;">${escapeHtml(err.message)}</div>
+                `;
+                btn.textContent = 'Retry';
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         function populateGrantsTab(charity) {
