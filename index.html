@@ -322,7 +322,75 @@
             font-weight: 700;
         }
 
-        /* ── RESULTS GRID ───────────────────────────────────────────── */
+        /* ── FILTER BAR ─────────────────────────────────────────────── */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.65rem 0.875rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .filter-bar select {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.78rem;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .filter-bar select:hover,
+        .filter-bar select:focus { border-color: rgba(255,255,255,0.25); }
+
+        .filter-bar select option { background: #1a1a2e; color: rgba(255,255,255,0.85); }
+
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            user-select: none;
+            padding: 0.3rem 0.55rem;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.06);
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+        }
+
+        .filter-toggle:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
+
+        .filter-toggle input[type="checkbox"] {
+            accent-color: var(--brand-gold);
+            width: 12px;
+            height: 12px;
+            cursor: pointer;
+        }
+
+        .filter-toggle.active {
+            border-color: var(--brand-gold);
+            color: var(--brand-gold);
+            background: rgba(255,185,0,0.08);
+        }
+
+        .filter-count-badge {
+            margin-left: auto;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.3);
+            white-space: nowrap;
+        }
+
+/* ── RESULTS GRID ───────────────────────────────────────────── */
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -1615,6 +1683,30 @@
     <div class="results-area">
         <div id="errorContainer"></div>
         <div id="resultsInfo" style="display: none;">
+            <div id="filterBar" class="filter-bar">
+                <select id="filterIncome" onchange="applyFiltersAndRender()">
+                    <option value="0">Any income</option>
+                    <option value="10000">£10k+</option>
+                    <option value="50000">£50k+</option>
+                    <option value="100000">£100k+</option>
+                    <option value="500000">£500k+</option>
+                    <option value="1000000">£1M+</option>
+                </select>
+                <select id="filterGrants" onchange="applyFiltersAndRender()">
+                    <option value="0">Any grants</option>
+                    <option value="1">Has given grants</option>
+                    <option value="5">5+ grants</option>
+                    <option value="10">10+ grants</option>
+                    <option value="25">25+ grants</option>
+                </select>
+                <select id="filterSort" onchange="applyFiltersAndRender()">
+                    <option value="default">Sort: Relevance</option>
+                    <option value="income-desc">Income: High → Low</option>
+                    <option value="income-asc">Income: Low → High</option>
+                    <option value="grants-desc">Grants: Most first</option>
+                </select>
+                <span class="filter-count-badge" id="filterCountBadge"></span>
+            </div>
             <div class="results-info">
                 <div class="results-count" id="resultsCount"></div>
             </div>
@@ -1747,12 +1839,36 @@
             }
         }
 
+        function getFilteredResults() {
+            if (!currentResults.length) return [];
+            const minIncome = parseInt(document.getElementById('filterIncome')?.value || '0');
+            const minGrants = parseInt(document.getElementById('filterGrants')?.value || '0');
+            const sortBy = document.getElementById('filterSort')?.value || 'default';
+
+            let filtered = currentResults.filter(c => {
+                if (minIncome > 0 && (c.latest_income || 0) < minIncome) return false;
+                if (minGrants > 0 && (c.grants_given_count || 0) < minGrants) return false;
+                return true;
+            });
+
+            if (sortBy === 'income-desc') filtered.sort((a, b) => (b.latest_income || 0) - (a.latest_income || 0));
+            else if (sortBy === 'income-asc') filtered.sort((a, b) => (a.latest_income || 0) - (b.latest_income || 0));
+            else if (sortBy === 'grants-desc') filtered.sort((a, b) => (b.grants_given_count || 0) - (a.grants_given_count || 0));
+
+            return filtered;
+        }
+
+        function applyFiltersAndRender() {
+            displayResults(currentResults);
+        }
+
         function displayResults(results) {
             const resultsContainer = document.getElementById('resultsContainer');
             const resultsInfo = document.getElementById('resultsInfo');
             const resultsCount = document.getElementById('resultsCount');
+            const filterCountBadge = document.getElementById('filterCountBadge');
 
-            if (results.length === 0) {
+            if (currentResults.length === 0) {
                 resultsInfo.style.display = 'none';
                 resultsContainer.innerHTML = `
                     <div class="empty-state">
@@ -1764,12 +1880,29 @@
                 return;
             }
 
-            resultsInfo.style.display = 'block';
-            resultsCount.innerHTML = `<strong>${results.length}</strong> ${results.length === 1 ? 'charity' : 'charities'} found`;
+            const filtered = getFilteredResults();
+            const total = filtered.length;
+            const isFiltered = total < currentResults.length;
+            filterCountBadge.textContent = isFiltered ? `${currentResults.length - total} filtered out` : '';
 
+            resultsInfo.style.display = 'block';
+
+            if (total === 0) {
+                resultsCount.innerHTML = `<strong>0</strong> of ${currentResults.length} charities match filters`;
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3 class="empty-state-title">No results match your filters</h3>
+                        <p class="empty-state-description">Try adjusting the filters above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsCount.innerHTML = `<strong>${total}</strong> ${total === 1 ? 'charity' : 'charities'} found`;
             resultsContainer.innerHTML = `
                 <div class="results-grid">
-                    ${results.map((charity, index) => createCharityCard(charity, index)).join('')}
+                    ${filtered.map((charity, i) => createCharityCard(charity, i)).join('')}
                 </div>
             `;
         }
@@ -1798,7 +1931,7 @@
             const delay = Math.min(index, 11) * 55;
 
             return `
-                <div class="charity-card" style="--card-delay:${delay}ms" onclick="showCharityDetail(${index})">
+                <div class="charity-card" style="--card-delay:${delay}ms" onclick="showCharityDetail('${charity.organisation_number}')">
                     <div class="card-header">
                         <h3 class="charity-name">${escapeHtml(charity.charity_name || 'Unknown Charity')}</h3>
                         ${statusBadgeHTML}
@@ -1902,8 +2035,9 @@
             `;
         }
 
-        function showCharityDetail(index) {
-            const charity = currentResults[index];
+        function showCharityDetail(orgNumber) {
+            const charity = currentResults.find(c => String(c.organisation_number) === String(orgNumber));
+            if (!charity) return;
             const backdrop = document.getElementById('drawerBackdrop');
 
             window._currentCharity = charity;
@@ -3114,6 +3248,15 @@
             document.getElementById('searchButton').disabled = false;
             document.getElementById('buttonText').textContent = 'Search';
             currentResults = [];
+
+            // Reset filter controls
+            const filterIncome = document.getElementById('filterIncome');
+            if (filterIncome) filterIncome.value = '0';
+            const filterGrants = document.getElementById('filterGrants');
+            if (filterGrants) filterGrants.value = '0';
+            const filterSort = document.getElementById('filterSort');
+            if (filterSort) filterSort.value = 'default';
+            document.getElementById('filterCountBadge').textContent = '';
 
             // Scroll back to top smoothly
             window.scrollTo({ top: 0, behavior: 'smooth' });
