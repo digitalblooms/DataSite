@@ -2043,6 +2043,7 @@
             window._currentCharity = charity;
             window._docsLoaded = false;
             window._financialsLoaded = false;
+            window._docData = null;
 
             document.getElementById('modalTitle').textContent = charity.charity_name || 'Unknown Charity';
             document.getElementById('modalSubtitle').textContent = `Charity No. ${charity.registered_charity_number || charity.organisation_number || 'N/A'}`;
@@ -2446,7 +2447,8 @@
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
                         <h3 class="empty-state-title">No prospect intelligence available</h3>
-                        <p class="empty-state-description">Prospect intelligence has not been extracted for this charity.</p>
+                        <p class="empty-state-description">Extract strategic intelligence from the latest annual report to populate this tab.</p>
+                        <button class="doc-action-btn" style="margin-top:1.25rem;padding:0.35rem 0.875rem;font-size:0.72rem;" onclick="extractIntelligence(this)">Extract Intelligence</button>
                     </div>
                 `;
                 return;
@@ -2535,6 +2537,77 @@
             }
         }
 
+        // ── DOC DATA HELPERS ──────────────────────────────────────────
+        async function getDocData() {
+            if (window._docData) return window._docData;
+            const charity = window._currentCharity;
+            const resp = await fetch(DOCS_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    charityNumber: charity.registered_charity_number || charity.organisation_number,
+                    orgNumber: charity.organisation_number
+                })
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            let data = await resp.json();
+            if (Array.isArray(data)) data = data[0];
+            if (!data || !data.success) throw new Error(data?.error || 'Unexpected response');
+            window._docData = data;
+            return data;
+        }
+
+        async function extractGrantsForYear(btn, year) {
+            btn.disabled = true;
+            btn.textContent = 'Reading & extracting…';
+            try {
+                const data = await getDocData();
+                const yearData = (data.years || []).find(y => y.year == year);
+                if (!yearData?.downloaded) throw new Error('PDF not downloaded');
+                triggerDocAction(btn, year, 'extract_grants', yearData.airtable_record_id, data.org_number, data.charity_number);
+            } catch (err) {
+                btn.textContent = 'Failed';
+                btn.classList.add('danger');
+                setTimeout(() => { btn.textContent = `Extract ${year}`; btn.classList.remove('danger'); btn.disabled = false; }, 2500);
+            }
+        }
+
+        async function extractIntelligence(btn) {
+            btn.disabled = true;
+            btn.textContent = 'Reading & extracting…';
+            try {
+                const data = await getDocData();
+                const latest = (data.years || []).slice().sort((a, b) => b.year - a.year).find(y => y.downloaded);
+                if (!latest) throw new Error('No downloaded PDFs found');
+                triggerDocAction(btn, latest.year, 'extract_qualitative', latest.airtable_record_id, data.org_number, data.charity_number);
+            } catch (err) {
+                btn.textContent = 'Failed';
+                btn.classList.add('danger');
+                setTimeout(() => { btn.textContent = 'Extract Intelligence'; btn.classList.remove('danger'); btn.disabled = false; }, 2500);
+            }
+        }
+
+        async function loadGrantExtractSection(charity) {
+            const section = document.getElementById('tab3-extract-section');
+            if (!section) return;
+            try {
+                const data = await getDocData();
+                const extractable = (data.years || [])
+                    .filter(y => y.downloaded && !y.grants_extracted)
+                    .sort((a, b) => b.year - a.year);
+                if (extractable.length === 0) { section.remove(); return; }
+                section.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.25rem;padding:0.6rem 0.875rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;">
+                        <span style="font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.3);">Extract from Annual Reports</span>
+                        <div class="doc-actions">
+                            ${extractable.map(y => `<button class="doc-action-btn" onclick="extractGrantsForYear(this,${y.year})">Extract ${y.year}</button>`).join('')}
+                        </div>
+                    </div>`;
+            } catch (err) {
+                section.remove();
+            }
+        }
+
         function populateGrantsTab(charity) {
             const tab = document.getElementById('tab3');
             const grants = parseArray(charity.recent_grants);
@@ -2546,6 +2619,7 @@
                     .sort((a, b) => a - b);
 
                 tab.innerHTML = `
+                    <div id="tab3-extract-section"></div>
                     <div class="empty-state">
                         <div class="empty-state-icon">💰</div>
                         <h3 class="empty-state-title">No grant data available</h3>
@@ -2560,6 +2634,7 @@
                     </div>
                     ` : ''}
                 `;
+                loadGrantExtractSection(charity);
                 return;
             }
 
@@ -2745,6 +2820,8 @@
                 </div>
                 ` : ''}
 
+                <div id="tab3-extract-section"></div>
+
                 ${sortedYears.map((year) => `
                     <div class="grants-year-section">
                         <div class="grants-year-header" onclick="toggleGrantYear('grant-year-${year}', this)">
@@ -2766,7 +2843,12 @@
                                     <tbody>
                                         ${grantsByYear[year].map(grant => `
                                             <tr>
-                                                <td>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</td>
+                                                <td>
+                                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                                        <span>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</span>
+                                                        ${grant.recipient_name ? `<a href="https://www.google.com/search?q=${encodeURIComponent('What is the website for ' + grant.recipient_name)}" target="_blank" rel="noopener noreferrer" title="Search Google for ${escapeHtml(grant.recipient_name)}" onclick="event.stopPropagation()" style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:white;text-decoration:none;opacity:0.55;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.55'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></a>` : ''}
+                                                    </div>
+                                                </td>
                                                 <td style="text-align:right;font-weight:600;color:var(--brand-gold)">${formatCurrency(grant.amount || 0)}</td>
                                             </tr>
                                         `).join('')}
@@ -2777,6 +2859,7 @@
                     </div>
                 `).join('')}
             `;
+            loadGrantExtractSection(charity);
         }
 
         function toggleGrantYear(id, headerEl) {
@@ -2820,7 +2903,12 @@
             if (!tbody) return;
             tbody.innerHTML = sorted.map(grant => `
                 <tr>
-                    <td>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span>${escapeHtml(grant.recipient_name || 'Unknown Recipient')}</span>
+                            ${grant.recipient_name ? `<a href="https://www.google.com/search?q=${encodeURIComponent('What is the website for ' + grant.recipient_name)}" target="_blank" rel="noopener noreferrer" title="Search Google for ${escapeHtml(grant.recipient_name)}" onclick="event.stopPropagation()" style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:white;text-decoration:none;opacity:0.55;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.55'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></a>` : ''}
+                        </div>
+                    </td>
                     <td style="text-align:right;font-weight:600;color:var(--brand-gold)">${formatCurrency(grant.amount || 0)}</td>
                 </tr>
             `).join('');
@@ -2973,18 +3061,11 @@
                 }
 
                 function actionBtns(y) {
-                    const btns = [];
                     const id = escapeHtml(y.airtable_record_id || '');
                     if (y.available_from_cc && !y.downloaded) {
-                        btns.push(`<button class="doc-action-btn" onclick="triggerDocAction(this,${y.year},'download','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Download PDF</button>`);
+                        return `<div class="doc-actions"><button class="doc-action-btn" onclick="triggerDocAction(this,${y.year},'download','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Download PDF</button></div>`;
                     }
-                    if (y.downloaded && !y.grants_extracted) {
-                        btns.push(`<button class="doc-action-btn" title="Reads the document and extracts grant data" onclick="triggerDocAction(this,${y.year},'extract_grants','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Grants</button>`);
-                    }
-                    if (y.year === latestDownloadedYear && !y.qualitative_extracted) {
-                        btns.push(`<button class="doc-action-btn" title="Reads the document and extracts strategic intelligence" onclick="triggerDocAction(this,${y.year},'extract_qualitative','${id}','${escapeHtml(orgNum)}','${escapeHtml(charNum)}')">Extract Intelligence</button>`);
-                    }
-                    return btns.length ? `<div class="doc-actions">${btns.join('')}</div>` : '<span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">—</span>';
+                    return '<span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">—</span>';
                 }
 
                 tab.innerHTML = `
@@ -3076,6 +3157,7 @@
                 const isDone = text.includes('extraction_complete') || text.includes('download_complete');
                 if (!isDone) throw new Error('Unexpected response');
                 btn.textContent = '✓ Done';
+                window._docData = null;
                 setTimeout(() => {
                     window._docsLoaded = false;
                     populateDocumentsTab(window._currentCharity);
