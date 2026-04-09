@@ -470,6 +470,12 @@
             border: 1px solid rgba(240,198,154,0.25);
         }
 
+        .badge-donor {
+            background: rgba(16,185,129,0.1);
+            color: #6EE7B7;
+            border: 1px solid rgba(16,185,129,0.25);
+        }
+
         .badge-subsidiary {
             background: rgba(255,255,255,0.07);
             color: rgba(255,255,255,0.5);
@@ -526,6 +532,44 @@
             font-size: 0.7rem;
             font-weight: 600;
             border: 1px solid rgba(240,198,154,0.12);
+        }
+
+        .charity-card.is-donor {
+            border-color: rgba(16,185,129,0.4);
+        }
+
+        .charity-card.is-donor::before {
+            background: linear-gradient(180deg, #6EE7B7 0%, #10B981 100%);
+            opacity: 0.7;
+        }
+
+        .charity-card.is-donor:hover::before {
+            opacity: 1;
+        }
+
+        .donor-toggle {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: rgba(255,255,255,0.35);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        .donor-toggle:hover {
+            border-color: rgba(110,231,183,0.35);
+            color: rgba(110,231,183,0.7);
+        }
+
+        .donor-toggle.is-donor {
+            border-color: rgba(16,185,129,0.5);
+            background: rgba(16,185,129,0.1);
+            color: #6EE7B7;
         }
 
         .match-tag {
@@ -1718,6 +1762,9 @@
                     <option value="income-asc">Income: Low → High</option>
                     <option value="grants-desc">Grants: Most first</option>
                 </select>
+                <label class="filter-toggle" id="filterDonorsToggle" onclick="toggleDonorFilter(this)">
+                    <input type="checkbox" id="filterDonorsOnly"> Current donors
+                </label>
                 <span class="filter-count-badge" id="filterCountBadge"></span>
             </div>
             <div class="results-info">
@@ -1774,8 +1821,10 @@
         const FINANCIALS_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/financials';
         const ALIGNMENT_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/47f38e0e-8e84-4f5f-98c8-ef14945667a1';
         const TRUSTEE_SEARCH_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/2f14cb02-3a16-494f-9d2d-3fbc3237c5f3';
+        const DONORS_WEBHOOK_URL = 'https://bloomsburydigital.app.n8n.cloud/webhook/donors'; // POST: { action: "add"|"remove", organisation_number }
 
         let currentResults = [];
+        window.donorSet = new Set();
         let searchType = 'natural'; // 'natural' or 'name'
         let currentGrantsPage = 1;
         const GRANTS_PER_PAGE = 10;
@@ -1829,8 +1878,9 @@
 
                 if (data.success && data.results) {
                     currentResults = data.results;
-                    window.searchIntent = data.search_intent || null; // ← add this
+                    window.searchIntent = data.search_intent || null;
                     window.nameSearchQuery = searchType === 'name' ? query : null;
+                    window.donorSet = new Set(data.results.filter(c => c.is_current_donor).map(c => String(c.organisation_number)));
                     displayResults(data.results);
                 } else {
                     throw new Error(data.error || 'Unknown error occurred');
@@ -1860,9 +1910,12 @@
             const minGrants = parseInt(document.getElementById('filterGrants')?.value || '0');
             const sortBy = document.getElementById('filterSort')?.value || 'default';
 
+            const donorsOnly = document.getElementById('filterDonorsOnly')?.checked;
+
             let filtered = currentResults.filter(c => {
                 if (minIncome > 0 && (c.latest_income || 0) < minIncome) return false;
                 if (minGrants > 0 && (c.grants_given_count || 0) < minGrants) return false;
+                if (donorsOnly && !window.donorSet?.has(String(c.organisation_number))) return false;
                 return true;
             });
 
@@ -1927,18 +1980,8 @@
             const recentGrants = parseArray(charity.recent_grants);
             const totalGrantsCount = recentGrants.length;
 
-            let statusBadgeHTML = '';
-            const linkedCharityNumber = charity.linked_charity_number;
-
-            if (index < 3) {
-                console.log(`Charity ${index}:`, charity.charity_name, 'linked_charity_number:', linkedCharityNumber, 'type:', typeof linkedCharityNumber);
-            }
-
-            if (linkedCharityNumber === 0 || linkedCharityNumber === '0') {
-                statusBadgeHTML = '<span class="status-badge badge-parent">Parent</span>';
-            } else if (linkedCharityNumber && linkedCharityNumber !== null && linkedCharityNumber !== 'null') {
-                statusBadgeHTML = `<span class="status-badge badge-subsidiary">Sub #${linkedCharityNumber}</span>`;
-            }
+            const orgNum = charity.organisation_number;
+            const isDonor = window.donorSet?.has(String(orgNum));
 
             const classifications = parseArray(charity.classifications);
             const areas = parseArray(charity.areas_of_operation);
@@ -1948,10 +1991,10 @@
             const delay = Math.min(index, 11) * 55;
 
             return `
-                <div class="charity-card" style="--card-delay:${delay}ms" onclick="showCharityDetail('${charity.organisation_number}')">
+                <div class="charity-card${isDonor ? ' is-donor' : ''}" data-org="${orgNum}" style="--card-delay:${delay}ms" onclick="showCharityDetail('${orgNum}')">
                     <div class="card-header">
                         <h3 class="charity-name">${highlightMatch(charity.charity_name || 'Unknown Charity', window.nameSearchQuery)}</h3>
-                        ${statusBadgeHTML}
+                        ${isDonor ? '<span class="status-badge badge-donor">Donor</span>' : ''}
                     </div>
                     <p class="charity-activities">
                         ${escapeHtml(charity.charity_activities || 'No description available')}
@@ -2006,12 +2049,15 @@
             const areas = parseArray(charity.areas_of_operation).slice(0, 6);
             const hasContact = charity.charity_contact_web || charity.charity_contact_email || charity.charity_contact_phone;
 
+            const isSidebarDonor = window.donorSet?.has(String(orgNum));
+
             sidebar.innerHTML = `
                 <div class="sb-section">
                     <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
                         <span class="sb-reg">No. ${escapeHtml(String(charity.registered_charity_number || charity.organisation_number || 'N/A'))}</span>
                         ${badgeHTML}
                     </div>
+                    <button id="sidebarDonorBtn" class="donor-toggle${isSidebarDonor ? ' is-donor' : ''}" onclick="toggleDonor(event,'${orgNum}')" style="margin-top:0.6rem;width:100%;">${isSidebarDonor ? '✓ Current Donor' : '+ Mark as Current Donor'}</button>
                 </div>
 
                 <div class="sb-divider"></div>
@@ -3285,6 +3331,100 @@
             return escaped.replace(regex, '<mark class="name-highlight">$1</mark>');
         }
 
+        // ── DONOR TRACKING ────────────────────────────────────────────
+        async function toggleDonor(event, orgNum) {
+            const key = String(orgNum);
+            const isNowDonor = !window.donorSet.has(key);
+            if (isNowDonor) window.donorSet.add(key);
+            else window.donorSet.delete(key);
+
+            // Update sidebar button
+            const btn = document.getElementById('sidebarDonorBtn');
+            if (btn) {
+                btn.classList.toggle('is-donor', isNowDonor);
+                btn.textContent = isNowDonor ? '✓ Current Donor' : '+ Mark as Current Donor';
+            }
+
+            // Update card outline and badge in grid
+            const card = document.querySelector(`.charity-card[data-org="${key}"]`);
+            if (card) {
+                card.classList.toggle('is-donor', isNowDonor);
+                const existingBadge = card.querySelector('.badge-donor');
+                if (isNowDonor && !existingBadge) {
+                    const badge = document.createElement('span');
+                    badge.className = 'status-badge badge-donor';
+                    badge.textContent = 'Donor';
+                    card.querySelector('.card-header').appendChild(badge);
+                } else if (!isNowDonor && existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+
+            // Re-render grid if donors-only filter is active (card may need to disappear)
+            if (document.getElementById('filterDonorsOnly')?.checked) {
+                displayResults(currentResults);
+            }
+
+            // Persist to webhook
+            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+            try {
+                const res = await fetch(DONORS_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: isNowDonor ? 'add' : 'remove', organisation_number: key })
+                });
+                const status = (await res.text()).trim().toUpperCase();
+
+                if (status === 'SUCCEEDED') {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = isNowDonor ? '✓ Current Donor' : '+ Mark as Current Donor';
+                    }
+                } else {
+                    throw new Error(status || 'Unexpected response');
+                }
+            } catch(e) {
+                // Revert optimistic update
+                if (isNowDonor) window.donorSet.delete(key);
+                else window.donorSet.add(key);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.toggle('is-donor', !isNowDonor);
+                    btn.textContent = !isNowDonor ? '✓ Current Donor' : '+ Mark as Current Donor';
+                    btn.style.borderColor = 'rgba(239,68,68,0.5)';
+                    btn.style.color = '#FCA5A5';
+                    btn.textContent = 'Failed — try again';
+                    setTimeout(() => {
+                        btn.style.borderColor = '';
+                        btn.style.color = '';
+                        btn.textContent = !isNowDonor ? '✓ Current Donor' : '+ Mark as Current Donor';
+                    }, 3000);
+                }
+                if (card) {
+                    card.classList.toggle('is-donor', !isNowDonor);
+                    const existingBadge = card.querySelector('.badge-donor');
+                    if (!isNowDonor && !existingBadge) {
+                        const badge = document.createElement('span');
+                        badge.className = 'status-badge badge-donor';
+                        badge.textContent = 'Donor';
+                        card.querySelector('.card-header').appendChild(badge);
+                    } else if (isNowDonor && existingBadge) {
+                        existingBadge.remove();
+                    }
+                }
+                if (document.getElementById('filterDonorsOnly')?.checked) displayResults(currentResults);
+            }
+        }
+
+        function toggleDonorFilter(label) {
+            const cb = document.getElementById('filterDonorsOnly');
+            // The click on the label will toggle cb automatically; just sync the active class
+            setTimeout(() => {
+                label.classList.toggle('active', cb.checked);
+                applyFiltersAndRender();
+            }, 0);
+        }
+
         // Close drawer on scrim click
         document.getElementById('drawerScrim').addEventListener('click', closeModal);
 
@@ -3368,6 +3508,8 @@
             if (filterGrants) filterGrants.value = '0';
             const filterSort = document.getElementById('filterSort');
             if (filterSort) filterSort.value = 'default';
+            const filterDonorsOnly = document.getElementById('filterDonorsOnly');
+            if (filterDonorsOnly) { filterDonorsOnly.checked = false; document.getElementById('filterDonorsToggle')?.classList.remove('active'); }
             document.getElementById('filterCountBadge').textContent = '';
 
             // Scroll back to top smoothly
