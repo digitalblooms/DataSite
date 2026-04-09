@@ -528,6 +528,19 @@
             border: 1px solid rgba(240,198,154,0.12);
         }
 
+        .match-tag {
+            background: rgba(16, 185, 129, 0.1);
+            color: #6EE7B7;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .name-highlight {
+            background: rgba(240, 198, 154, 0.18);
+            color: var(--brand-gold);
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+
         /* ── SKELETON CARDS ─────────────────────────────────────────── */
         .skeleton {
             background: linear-gradient(90deg,
@@ -1816,6 +1829,8 @@
 
                 if (data.success && data.results) {
                     currentResults = data.results;
+                    window.searchIntent = data.search_intent || null; // ← add this
+                    window.nameSearchQuery = searchType === 'name' ? query : null;
                     displayResults(data.results);
                 } else {
                     throw new Error(data.error || 'Unknown error occurred');
@@ -1928,12 +1943,14 @@
             const classifications = parseArray(charity.classifications);
             const areas = parseArray(charity.areas_of_operation);
             const tags = [...classifications.slice(0, 2), ...areas.slice(0, 1)];
+            const matchReasons = getMatchReasons(charity, window.searchIntent);
+            const tagsToShow = matchReasons.length > 0 ? matchReasons : tags;
             const delay = Math.min(index, 11) * 55;
 
             return `
                 <div class="charity-card" style="--card-delay:${delay}ms" onclick="showCharityDetail('${charity.organisation_number}')">
                     <div class="card-header">
-                        <h3 class="charity-name">${escapeHtml(charity.charity_name || 'Unknown Charity')}</h3>
+                        <h3 class="charity-name">${highlightMatch(charity.charity_name || 'Unknown Charity', window.nameSearchQuery)}</h3>
                         ${statusBadgeHTML}
                     </div>
                     <p class="charity-activities">
@@ -1955,9 +1972,13 @@
                         </div>
                         ` : ''}
                     </div>
-                    ${tags.length > 0 ? `
+                    ${tagsToShow.length > 0 ? `
                     <div class="charity-tags">
-                        ${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                        ${matchReasons.length > 0 ? tagsToShow.map(tag =>
+                            `<span class="tag match-tag">✓ ${escapeHtml(tag)}</span>`
+                        ).join('') : tagsToShow.map(tag =>
+                            `<span class="tag">${escapeHtml(tag)}</span>`
+                        ).join('')}
                     </div>
                     ` : ''}
                 </div>
@@ -3255,6 +3276,15 @@
             return div.innerHTML;
         }
 
+        function highlightMatch(text, query) {
+            if (!text || !query) return escapeHtml(text);
+            const escaped = escapeHtml(text);
+            const escapedQuery = escapeHtml(query.trim());
+            if (!escapedQuery) return escaped;
+            const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return escaped.replace(regex, '<mark class="name-highlight">$1</mark>');
+        }
+
         // Close drawer on scrim click
         document.getElementById('drawerScrim').addEventListener('click', closeModal);
 
@@ -3343,6 +3373,68 @@
             // Scroll back to top smoothly
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        function getMatchReasons(charity, intent) {
+            if (!intent) return [];
+            const reasons = [];
+
+            // Mission tags
+            const charityTags = parseArray(charity.mission_tags).map(t => t.toLowerCase());
+            if (intent.mission_tags?.length) {
+                intent.mission_tags.forEach(tag => {
+                if (charityTags.some(t => t.includes(tag.toLowerCase()))) {
+                    reasons.push(tag);
+                }
+                });
+            }
+
+            // Geographic (areas_of_operation or AI geography)
+            const areas = parseArray(charity.areas_of_operation).map(a => a.toLowerCase());
+            const aiGeo = parseArray(charity.geography).map(g => g.toLowerCase());
+            if (intent.locations?.length) {
+                intent.locations.forEach(loc => {
+                if (areas.some(a => a.includes(loc.toLowerCase())) || 
+                    aiGeo.some(g => g.includes(loc.toLowerCase()))) {
+                    reasons.push(loc);
+                }
+                });
+            }
+            if (intent.ai_geography?.length) {
+                intent.ai_geography.forEach(geo => {
+                if (aiGeo.some(g => g.includes(geo.toLowerCase()))) {
+                    reasons.push(geo);
+                }
+                });
+            }
+
+            // Classifications
+            const charityClassifications = parseArray(charity.classifications).map(c => c.toLowerCase());
+            if (intent.classifications?.length) {
+                intent.classifications.forEach(cls => {
+                if (charityClassifications.some(c => c.includes(cls.toLowerCase()))) {
+                    reasons.push(cls);
+                }
+                });
+            }
+
+            // Grantmaker
+            if (intent.is_grantmaker && charity.is_grantmaker) {
+                reasons.push('Grantmaker');
+            }
+
+            // Grant recipient match
+            if (intent.grant_recipient) {
+                reasons.push(`Gave to ${intent.grant_recipient}`);
+            }
+
+            // Mission keywords (free text — we can't verify match precisely, so show as "searched for")
+            if (intent.mission_keywords?.length && reasons.length === 0) {
+                intent.mission_keywords.forEach(kw => reasons.push(`"${kw}"`));
+            }
+
+            // Deduplicate
+            return [...new Set(reasons)].slice(0, 5); // cap at 5 tags
+            }
     </script>
 </body>
 </html>
