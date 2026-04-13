@@ -383,6 +383,35 @@
             background: rgba(255,185,0,0.08);
         }
 
+        .donor-filter-group {
+            display: flex;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 0.78rem;
+        }
+
+        .donor-filter-group button {
+            padding: 0.3rem 0.6rem;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.55);
+            border: none;
+            border-right: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            font-size: inherit;
+            font-family: inherit;
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+
+        .donor-filter-group button:last-child { border-right: none; }
+        .donor-filter-group button:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+
+        .donor-filter-group button.active {
+            background: rgba(255,185,0,0.12);
+            color: var(--brand-gold);
+        }
+
         .filter-count-badge {
             margin-left: auto;
             font-size: 0.72rem;
@@ -1762,9 +1791,11 @@
                     <option value="income-asc">Income: Low → High</option>
                     <option value="grants-desc">Grants: Most first</option>
                 </select>
-                <label class="filter-toggle" id="filterDonorsToggle" onclick="toggleDonorFilter(this)">
-                    <input type="checkbox" id="filterDonorsOnly"> Current donors
-                </label>
+                <div class="donor-filter-group" id="donorFilterGroup">
+                    <button class="active" onclick="setDonorFilter('all', this)">All</button>
+                    <button onclick="setDonorFilter('donors', this)">Donors</button>
+                    <button onclick="setDonorFilter('non-donors', this)">Non-donors</button>
+                </div>
                 <span class="filter-count-badge" id="filterCountBadge"></span>
             </div>
             <div class="results-info">
@@ -1910,12 +1941,12 @@
             const minGrants = parseInt(document.getElementById('filterGrants')?.value || '0');
             const sortBy = document.getElementById('filterSort')?.value || 'default';
 
-            const donorsOnly = document.getElementById('filterDonorsOnly')?.checked;
-
             let filtered = currentResults.filter(c => {
                 if (minIncome > 0 && (c.latest_income || 0) < minIncome) return false;
                 if (minGrants > 0 && (c.grants_given_count || 0) < minGrants) return false;
-                if (donorsOnly && !window.donorSet?.has(String(c.organisation_number))) return false;
+                const isDonor = window.donorSet?.has(String(c.organisation_number));
+                if (window.donorFilterMode === 'donors' && !isDonor) return false;
+                if (window.donorFilterMode === 'non-donors' && isDonor) return false;
                 return true;
             });
 
@@ -3360,8 +3391,8 @@
                 }
             }
 
-            // Re-render grid if donors-only filter is active (card may need to disappear)
-            if (document.getElementById('filterDonorsOnly')?.checked) {
+            // Re-render grid if a donor filter is active (card may need to disappear)
+            if (window.donorFilterMode !== 'all') {
                 displayResults(currentResults);
             }
 
@@ -3412,17 +3443,17 @@
                         existingBadge.remove();
                     }
                 }
-                if (document.getElementById('filterDonorsOnly')?.checked) displayResults(currentResults);
+                if (window.donorFilterMode !== 'all') displayResults(currentResults);
             }
         }
 
-        function toggleDonorFilter(label) {
-            const cb = document.getElementById('filterDonorsOnly');
-            // The click on the label will toggle cb automatically; just sync the active class
-            setTimeout(() => {
-                label.classList.toggle('active', cb.checked);
-                applyFiltersAndRender();
-            }, 0);
+        window.donorFilterMode = 'all';
+
+        function setDonorFilter(mode, btn) {
+            window.donorFilterMode = mode;
+            document.querySelectorAll('#donorFilterGroup button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFiltersAndRender();
         }
 
         // Close drawer on scrim click
@@ -3508,8 +3539,8 @@
             if (filterGrants) filterGrants.value = '0';
             const filterSort = document.getElementById('filterSort');
             if (filterSort) filterSort.value = 'default';
-            const filterDonorsOnly = document.getElementById('filterDonorsOnly');
-            if (filterDonorsOnly) { filterDonorsOnly.checked = false; document.getElementById('filterDonorsToggle')?.classList.remove('active'); }
+            window.donorFilterMode = 'all';
+            document.querySelectorAll('#donorFilterGroup button').forEach((b, i) => b.classList.toggle('active', i === 0));
             document.getElementById('filterCountBadge').textContent = '';
 
             // Scroll back to top smoothly
